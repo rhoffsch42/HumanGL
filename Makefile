@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: jfortin <jfortin@student.42.fr>            +#+  +:+       +#+         #
+#    By: rhoffsch <rhoffsch@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/05/15 17:38:19 by rhoffsch          #+#    #+#              #
-#    Updated: 2019/10/03 17:26:21 by jfortin          ###   ########.fr        #
+#    Updated: 2019/10/15 16:22:11 by rhoffsch         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -100,6 +100,10 @@ pclean: fclean
 re:
 	@make fclean
 	@make release
+
+submodule:
+	cd $(SGL_DIR) && \
+	git submodule update --init
 
 run: all
 	@echo ""
