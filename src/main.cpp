@@ -152,6 +152,7 @@ void sceneHumanGL() {
 	head.local.setScale(1.5, 1.5, 1.5);//bad, use rescale of obj3d vertices
 	head.setColor(155, 155, 0);
 	head.local.centered = centerCubes;
+	head.local.setScale(3,3,3);
 
 	Obj3d			tronc(cubebp, obj3d_prog);
 	tronc.setTexture(lena);
@@ -274,9 +275,18 @@ void sceneHumanGL() {
 	b2_rot.addTarget(&containerLR1);
 
 
+	// the dab !
+	head.local.setRot(30,0,0);
+	containerT.local.setRot(0,180,-15);
+	containerL1.local.setRot(0,0,-110);
+	containerR1.local.setRot(110,40,-30);
+	containerR2.local.setRot(90,0,-20);
+	containerLR1.local.setRot(0,0,45);
+	containerLR2.local.setRot(0,0,-45);
+
 
 	// avant_bras_gauche.behaviorsActive = false;
-	// Behavior::areActive = false;
+	Behavior::areActive = false;
 #endif // BEHAVIORS
 
 #ifndef RENDER
