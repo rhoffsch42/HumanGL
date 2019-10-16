@@ -11,20 +11,7 @@
 /* ************************************************************************** */
 
 #include "humangl.h"
-#include "simplegl.h"
-
-#include "program.hpp"
-#include "object.hpp"
-#include "obj3dPG.hpp"
-#include "obj3dBP.hpp"
-#include "obj3d.hpp"
-#include "misc.hpp"
-#include "cam.hpp"
-#include "texture.hpp"
-#include "skyboxPG.hpp"
-#include "skybox.hpp"
-#include "glfw.hpp"
-#include "transformBH.hpp"
+#include "human.hpp"
 
 #include <string>
 #include <cstdio>
@@ -110,12 +97,12 @@ void	renderSkybox(Skybox& skybox, Cam& cam) {
 	skybox.render(proMatrix);
 }
 
-Obj3d	createMember(Obj3dBP bp, Obj3dPG pg, Math::Vector3 color, bool centered = false) {
+Obj3d	createMember(Obj3dBP bp, Obj3dPG pg, float longueur, Math::Vector3 color, bool centered = false) {
 	Obj3d			member(bp, pg);
 	member.displayTexture = false;
 	member.setColor(color.x, color.y, color.z);
 	member.local.centered = centered;
-	member.local.setScale(1,4,1);
+	member.local.setScale(1,longueur,1);
 	return member;
 }
 
@@ -148,29 +135,35 @@ void sceneHumanGL() {
 	Object			containerLR1;
 	Object			containerLR2;
 
+	float			grosseTete = 1.8f;
 	Obj3d			head(cubebp, obj3d_prog);
-	head.local.setScale(1.5, 1.5, 1.5);//bad, use rescale of obj3d vertices
+	head.local.setScale(grosseTete, grosseTete, grosseTete);
 	head.setColor(155, 155, 0);
 	head.local.centered = centerCubes;
-	head.local.setScale(3,3,3);
 
 	Obj3d			tronc(cubebp, obj3d_prog);
 	tronc.setTexture(lena);
 	tronc.displayTexture = true;
-	tronc.local.setScale(epaisseur_tronc, epaisseur_tronc * 3, epaisseur_tronc);//bad, use rescale of obj3d vertices
+	tronc.local.setScale(epaisseur_tronc, epaisseur_tronc * 3, epaisseur_tronc);
 	tronc.setColor(0xff, 0, 0);
 	tronc.local.centered = centerCubes;
 
-	Obj3d avant_bras_gauche = createMember(cubebp, obj3d_prog, Math::Vector3(0,0xff,0));
-	Obj3d avant_bras_droit = createMember(cubebp, obj3d_prog, Math::Vector3(0,0,0xff));
-	Obj3d apres_bras_gauche = createMember(cubebp, obj3d_prog, Math::Vector3(0xff,0,0));
-	Obj3d apres_bras_droit = createMember(cubebp, obj3d_prog, Math::Vector3(0,0xff,0xff));
+	Obj3d avant_bras_gauche = createMember(cubebp, obj3d_prog, longueurBras, Math::Vector3(0,0xff,0));
+	Obj3d avant_bras_droit = createMember(cubebp, obj3d_prog, longueurBras, Math::Vector3(0,0,0xff));
+	Obj3d apres_bras_gauche = createMember(cubebp, obj3d_prog, longueurBras, Math::Vector3(0xff,0,0));
+	Obj3d apres_bras_droit = createMember(cubebp, obj3d_prog, longueurBras, Math::Vector3(0,0xff,0xff));
 
-	Obj3d avant_leg_gauche = createMember(cubebp, obj3d_prog, Math::Vector3(0xff,0xff,0));
-	Obj3d avant_leg_droit = createMember(cubebp, obj3d_prog, Math::Vector3(0xff,0,0xff));
-	Obj3d apres_leg_gauche = createMember(cubebp, obj3d_prog, Math::Vector3(0,0,0));
-	Obj3d apres_leg_droit = createMember(cubebp, obj3d_prog, Math::Vector3(0xff,0xff,0xff));
+	Obj3d avant_leg_gauche = createMember(cubebp, obj3d_prog, longueurBras, Math::Vector3(0xff,0xff,0));
+	Obj3d avant_leg_droit = createMember(cubebp, obj3d_prog, longueurBras, Math::Vector3(0xff,0,0xff));
+	Obj3d apres_leg_gauche = createMember(cubebp, obj3d_prog, longueurBras, Math::Vector3(0,0,0));
+	Obj3d apres_leg_droit = createMember(cubebp, obj3d_prog, longueurBras, Math::Vector3(0xff,0xff,0xff));
 
+	// invert scale left members on X only
+	Math::Vector3	s;
+	s = avant_bras_gauche.local.getScale();	avant_bras_gauche.local.setScale(-s.x, s.y, s.z);
+	s = apres_bras_gauche.local.getScale();	apres_bras_gauche.local.setScale(-s.x, s.y, s.z);
+	s = avant_leg_gauche.local.getScale();	avant_leg_gauche.local.setScale(-s.x, s.y, s.z);
+	s = apres_leg_gauche.local.getScale();	apres_leg_gauche.local.setScale(-s.x, s.y, s.z);
 
 	//hierarchy
 	tronc.setParent(&containerT);
@@ -195,16 +188,22 @@ void sceneHumanGL() {
 
 
 	//relative position
-	head.local.translate(0,head.local.getScale().y,0);
-	Math::Vector3 offsetMembre = Math::Vector3(0, -longueurBras, 0);
-	containerL1.local.translate(0, 0, 0);
-	containerR1.local.translate(tronc.local.getScale().x, 0, 0);
-	containerL2.local.translate(offsetMembre);
-	containerR2.local.translate(offsetMembre);
-	containerLL1.local.translate(0, -tronc.local.getScale().y, 0);
-	containerLR1.local.translate(tronc.local.getScale().x, -tronc.local.getScale().y, 0);
-	containerLL2.local.translate(offsetMembre);
-	containerLR2.local.translate(offsetMembre);
+	if (centerCubes) {
+		Math::Vector3 offsetMembre = Math::Vector3(0, -longueurBras, 0);
+		head.local.translate(0, head.local.getScale().y, 0);
+		containerL1.local.translate(-tronc.local.getScale().x, 0, 0);
+	} else {
+		Math::Vector3 offsetMembre = Math::Vector3(0, -longueurBras, 0);
+		head.local.translate(0, head.local.getScale().y, 0);
+		containerL1.local.translate(0, 0, 0);
+		containerR1.local.translate(tronc.local.getScale().x, 0, 0);
+		containerL2.local.translate(offsetMembre);
+		containerR2.local.translate(offsetMembre);
+		containerLL1.local.translate(tronc.local.getScale().x/2, -tronc.local.getScale().y, 0);
+		containerLR1.local.translate(tronc.local.getScale().x/2, -tronc.local.getScale().y, 0);
+		containerLL2.local.translate(offsetMembre);
+		containerLR2.local.translate(offsetMembre);
+	}
 
 	//debug
 	avant_bras_gauche.local.getPos().printData();
@@ -276,18 +275,57 @@ void sceneHumanGL() {
 
 
 	// the dab !
-	head.local.setRot(30,0,0);
-	containerT.local.setRot(0,180,-15);
-	containerL1.local.setRot(0,0,-110);
-	containerR1.local.setRot(110,40,-30);
-	containerR2.local.setRot(90,0,-20);
-	containerLR1.local.setRot(0,0,45);
-	containerLR2.local.setRot(0,0,-45);
+	if (true) {
+		head.local.setRot(30,0,0);
+		containerT.local.setRot(0,180,-15);
+		containerL1.local.setRot(0,0,-110);
+		containerR1.local.setRot(110,40,-30);
+		containerR2.local.setRot(90,0,-20);
+		containerLR1.local.setRot(0,0,45);
+		containerLR2.local.setRot(0,0,-45);
+	}
 
 
 	// avant_bras_gauche.behaviorsActive = false;
-	Behavior::areActive = false;
 #endif // BEHAVIORS
+	Behavior::areActive = false;
+
+#ifndef HUMAN_CLASS
+	/*
+		class Human { ... };
+		class HumanEvolved : public Human { more members };
+		class SuperSaiyan1 : HumanEvolved { with hairs! };
+		class SuperSaiyan2 : SuperSaiyan2 { longer hairs!! };
+		class SuperSaiyan3 : SuperSaiyan3 { even longer hairs!!! };
+
+		class AnimationBH : Behavior { ... can repeat! };
+	*/
+	float		thickness = 1.0f;
+	float		lenght = 4.0f;
+
+	Human *		bob = new Human(cubebp, obj3d_prog);
+	bob->setMembersSize(thickness, lenght);
+	bob->setTrunkSize(thickness * 2, lenght * 3 / 4);
+	bob->setHeadSize(thickness * 1.5);
+
+	// SuperSaiyan1	goku(bob);
+	// goku.setHairColor(BLOND);
+
+	// AnimationBH kamehameha;
+	// kamehameha.addTarget(&goku);
+
+	// //render loop
+	// kamehameha.run()
+
+	list<Obj3d*>	obj3dList2 = bob->getObjList();
+	std::cout << "adresses main:" << std::endl;
+	std::cout << obj3dList2.size() << std::endl;
+	for (auto i : obj3dList2) {
+		std::cout << &(*i) << std::endl;
+		i->local.getScale().printData();
+	}
+
+#endif // HUMAN_CLASS
 
 #ifndef RENDER
 
@@ -297,7 +335,7 @@ void sceneHumanGL() {
 		// std::cout << glfwGetTime() - t << std::endl;
 
 		if (defaultFps->wait_for_next_frame()) {
-			b0_rot.run();
+			// b0_rot.run();
 			b1_rot.run();
 			b2_rot.run();
 
