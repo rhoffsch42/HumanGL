@@ -10,7 +10,7 @@
 class BodyPart : public Object
 {
 public:
-	BodyPart(Obj3dBP blueprint, Obj3dPG program) : model(blueprint, program) {
+	BodyPart(Obj3dBP & blueprint, Obj3dPG & program) : model(blueprint, program) {
 		this->model.setParent(this);
 	}
 	Obj3d	model;
@@ -19,7 +19,7 @@ public:
 class Human
 {
 public:
-					Human(Obj3dBP blueprint, Obj3dPG program, float thickness = 1.0f, float lenght = 4.0f);
+					Human(Obj3dBP & blueprint, Obj3dPG & program, float thickness = 1.0f, float lenght = 4.0f);
 					// Human(const Human & src);//FIX see .cpp
 	virtual Human &	operator=(const Human & src);
 	virtual			~Human();
@@ -53,4 +53,5 @@ private:
 	std::list<Obj3d*>	_objList;
 
 	virtual void		scaleHuman();//children need to update their parent's part too, be sure to call this one too when scaling a child
+	virtual void		positionMembers();//children need to update their parent's part too, be sure to call this one too when scaling a child
 };

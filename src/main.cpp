@@ -234,7 +234,7 @@ void sceneHumanGL() {
 	Cam		cam(glfw);
 	cam.local.centered = false;
 	cam.local.setPos(0, 0, 10);
-	cam.setFov(90);
+	cam.setFov(120);
 	cam.lockedMovement = false;
 	cam.lockedOrientation = false;
 	cam.speed /= 4;
@@ -300,13 +300,16 @@ void sceneHumanGL() {
 
 		class AnimationBH : Behavior { ... can repeat! };
 	*/
-	float		thickness = 1.0f;
-	float		lenght = 4.0f;
+	float		thickness = 1.0f;	// default value
+	float		lenght = 4.0f;		// default value
 
 	Human *		bob = new Human(cubebp, obj3d_prog);
-	bob->setMembersSize(thickness, lenght);
-	bob->setTrunkSize(thickness * 2, lenght * 3 / 4);
+	bob->setMembersSize(thickness, lenght*3);
+	bob->setTrunkSize(thickness * 5, lenght*8);
 	bob->setHeadSize(thickness * 1.5);
+
+	// bob->setLenght(lenght * 8);
+	// bob->setThickness(thickness * 8);
 
 	// SuperSaiyan1	goku(bob);
 	// goku.setHairColor(BLOND);
@@ -318,14 +321,22 @@ void sceneHumanGL() {
 	// kamehameha.run()
 
 	list<Obj3d*>	obj3dList2 = bob->getObjList();
-	std::cout << "adresses main:" << std::endl;
-	std::cout << obj3dList2.size() << std::endl;
-	for (auto i : obj3dList2) {
-		std::cout << &(*i) << std::endl;
-		i->local.getScale().printData();
-	}
+	// std::cout << "adresses main:" << std::endl;
+	// std::cout << obj3dList2.size() << std::endl;
+	// for (auto i : obj3dList2) {
+	// 	std::cout << &(*i) << std::endl;
+	// 	i->local.getScale().printData();
+	// }
 
 #endif // HUMAN_CLASS
+
+	if (false) {
+	std::cout << obj3dList.size() << std::endl;
+		for (auto i : obj3dList) {
+			i->local.getScale().printData();
+		}
+	}
+
 
 #ifndef RENDER
 
@@ -343,7 +354,7 @@ void sceneHumanGL() {
 			glfw.updateMouse(); // to do before cam's events
 			cam.events(glfw, float(defaultFps->tick));
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-			renderObj3d(obj3dList, cam);
+			renderObj3d(obj3dList2, cam);
 			renderSkybox(skybox, cam);
 			glfwSwapBuffers(glfw._window);
 			if (GLFW_PRESS == glfwGetKey(glfw._window, GLFW_KEY_ESCAPE))
