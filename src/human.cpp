@@ -8,8 +8,7 @@
 #define MIN_LENGHT		0.1f
 
 Human::Human(Obj3dBP & blueprint, Obj3dPG & program, float thickness, float lenght)
-: _thickness(thickness), _lenght(lenght), \
-_head(blueprint, program), \
+: _head(blueprint, program), \
 _trunk(blueprint, program), \
 _leftArm(blueprint, program), \
 _rightArm(blueprint, program), \
@@ -18,10 +17,11 @@ _rightForearm(blueprint, program), \
 _leftThigh(blueprint, program), \
 _rightThigh(blueprint, program), \
 _leftCalf(blueprint, program), \
-_rightCalf(blueprint, program)
+_rightCalf(blueprint, program), \
+_thickness(thickness), _lenght(lenght)
 {
 	std::cout << __PRETTY_FUNCTION__ << std::endl;
-	// centered ?
+	// centered ? //FIX will be changed/refacto in SimpleGL
 	bool isCentered = false;
 	this->_head.model.local.centered = isCentered;
 	this->_trunk.model.local.centered = isCentered;
@@ -61,7 +61,6 @@ _rightCalf(blueprint, program)
 	this->_leftCalf.model.setColor(0, 0, 0);
 	this->_rightCalf.model.setColor(0xff, 0xff, 0xff);
 
-
 	this->_objList.push_back(&this->_head.model);
 	this->_objList.push_back(&this->_trunk.model);
 	this->_objList.push_back(&this->_leftArm.model);
@@ -72,13 +71,6 @@ _rightCalf(blueprint, program)
 	this->_objList.push_back(&this->_rightThigh.model);
 	this->_objList.push_back(&this->_leftCalf.model);
 	this->_objList.push_back(&this->_rightCalf.model);
-
-	std::cout << "adresses:" << std::endl;
-	std::cout << this->_objList.size() << std::endl;
-	for (auto i : this->_objList) {
-	// 	std::cout << &(*i) << std::endl;
-		i->local.getScale().printData();
-	}
 }
 
 // Human::Human(const Human & src) {//FIX not compiling, use only operator= ?
@@ -109,6 +101,7 @@ Human &			Human::operator=(const Human & src) {//FIX Obj3d model are well copied
 Human::~Human() {
 	std::cout << __PRETTY_FUNCTION__ << std::endl;
 }
+
 void			Human::setThickness(float thickness) {
 	if (thickness >= MIN_THICKNESS) {
 		this->_thickness = thickness;
@@ -117,6 +110,7 @@ void			Human::setThickness(float thickness) {
 	}
 	this->scaleHuman();
 }
+
 void			Human::setLenght(float lenght) {
 	if (lenght >= MIN_LENGHT) {
 		this->_lenght = lenght;
@@ -125,14 +119,17 @@ void			Human::setLenght(float lenght) {
 	}
 	this->scaleHuman();
 }
+
 void			Human::setTrunkSize(float thickness, float lenght) {
 	this->_trunk.model.local.setScale(thickness * SIZE_TRUNK, lenght, Z_THICKNESS);
 	this->positionMembers();
 }
+
 void			Human::setHeadSize(float thickness) {
 	this->_head.model.local.setScale(SIZE_HEAD * thickness, SIZE_HEAD * thickness, Z_THICKNESS);
 	this->_head.local.setPos(this->_trunk.model.local.getScale().x/2 - this->_head.model.local.getScale().x/2, this->_head.model.local.getScale().y, 0);
 }
+
 void			Human::setMembersSize(float thickness, float lenght) {
 	this->_leftArm.model.local.setScale(thickness, lenght * SIZE_MEMBER / 2.0f, Z_THICKNESS);
 	this->_rightArm.model.local.setScale(thickness, lenght * SIZE_MEMBER / 2.0f, Z_THICKNESS);
@@ -157,7 +154,6 @@ void			Human::setMembersSize(float thickness, float lenght) {
 
 std::list<Obj3d*>	Human::getObjList() const { return (this->_objList); }
 
-
 void			Human::scaleHuman() {
 	this->setTrunkSize(this->_thickness, this->_lenght);
 	this->setHeadSize(this->_thickness);
@@ -176,30 +172,4 @@ void			Human::positionMembers() {
 	this->_rightThigh.local.setPos(this->_trunk.model.local.getScale().x - this->_rightThigh.model.local.getScale().x, -this->_trunk.model.local.getScale().y, 0);
 	this->_leftCalf.local.setPos(offsetMembre);
 	this->_rightCalf.local.setPos(offsetMembre);
-
 }
-
-/*
-1.2 1.2 1
-2 3 1
-1 2.4 1
-1 2.4 1
-1 2.4 1
-1 2.4 1
-1 2.4 1
-1 2.4 1
-1 2.4 1
-1 2.4 1
-
-10
-1.8 1.8 1.8
-2 6 2
--1 4 1
-1 4 1
-1 4 1
--1 4 1
--1 4 1
-1 4 1
-1 4 1
--1 4 1
-*/

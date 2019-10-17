@@ -32,13 +32,6 @@ public:
 
 	std::list<Obj3d*>	getObjList() const;
 
-private:
-	Obj3dBP *	_blueprint;
-	Obj3dPG *	_program;
-
-	float		_thickness;
-	float		_lenght;
-
 	BodyPart	_head;
 	BodyPart	_trunk;
 	BodyPart	_leftArm;
@@ -49,6 +42,13 @@ private:
 	BodyPart	_rightThigh;
 	BodyPart	_leftCalf;
 	BodyPart	_rightCalf;
+
+private:
+	Obj3dBP *	_blueprint;
+	Obj3dPG *	_program;
+
+	float		_thickness;
+	float		_lenght;
 
 	std::list<Obj3d*>	_objList;
 
