@@ -3,6 +3,7 @@
         {
             "name": "Mac",
             "includePath": [
+                "${default}",
                 "${workspaceFolder}/**"
             ],
             "defines": [],
