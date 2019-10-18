@@ -6,13 +6,13 @@
 #    By: rhoffsch <rhoffsch@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/05/15 17:38:19 by rhoffsch          #+#    #+#              #
-#    Updated: 2019/10/16 20:01:57 by rhoffsch         ###   ########.fr        #
+#    Updated: 2019/10/18 17:46:59 by rhoffsch         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 NAME			=	HumanGL
 CC				=	g++ -std=c++11
-CFLAGS			=	-Wall -Wextra -Werror -MMD -g -fsanitize=address -O0 #-Wpadded
+CFLAGS			=	-Wall -Wextra -Werror -MMD -g -fsanitize=address #-Wpadded
 
 
 INCLUDE			=	-I ${GLEW_DIR}/include \
@@ -30,7 +30,9 @@ FRAMEWORKS		=	-framework OpenGL #-framework Cocoa
 CC_NEEDS		=	$(FRAMEWORKS) $(GLFW) $(GLEW)
 
 SRC_FILE		=	main.cpp \
-					human.cpp
+					human.cpp \
+					humanevolved.cpp \
+					extremity.cpp
 
 HDR_FILE		=	humangl.h
 

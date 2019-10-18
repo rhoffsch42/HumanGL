@@ -6,12 +6,13 @@
 /*   By: rhoffsch <rhoffsch@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/09/18 22:45:30 by rhoffsch          #+#    #+#             */
-/*   Updated: 2019/10/17 18:18:31 by rhoffsch         ###   ########.fr       */
+/*   Updated: 2019/10/18 16:08:28 by rhoffsch         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "humangl.h"
 #include "human.hpp"
+#include "humanevolved.hpp"
 
 #include <string>
 #include <cstdio>
@@ -127,23 +128,23 @@ void sceneHumanGL() {
 		class Human { ... };
 		class HumanEvolved : public Human { more members };
 		class SuperSaiyan1 : HumanEvolved { with hairs! };
-		class SuperSaiyan2 : SuperSaiyan2 { longer hairs!! };
-		class SuperSaiyan3 : SuperSaiyan3 { even longer hairs!!! };
+		class SuperSaiyan2 : SuperSaiyan1 { longer hairs!! };
+		class SuperSaiyan3 : SuperSaiyan2 { even longer hairs!!! };
 
 		class AnimationBH : Behavior { ... can repeat! };
 	*/
 	float		thickness = 1.0f;	// default value
 	float		lenght = 4.0f;		// default value
 
-	Human *		bob = new Human(cubebp, obj3d_prog);
-	bob->setMembersSize(thickness, lenght*8);
-	bob->setTrunkSize(thickness * 5, lenght);
-	bob->setHeadSize(thickness * 2);
+	HumanEvolved *		bob = new HumanEvolved(cubebp, obj3d_prog);
+	// bob->setMembersSize(thickness*3, lenght*8);
+	// bob->setTrunkSize(thickness * 5, lenght*5);
+	// bob->setHeadSize(thickness * 2);
 
-	// bob->setLenght(lenght);
-	// bob->setThickness(thickness);
-
-	// SuperSaiyan1	goku(bob);
+	bob->setLenght(lenght*2);
+	bob->setThickness(thickness*2);
+	// HumanEvolved		jack = new HumanEvolved(bob);
+	// SuperSaiyan1	goku(jack);
 	// goku.setHairColor(BLOND);
 
 	// AnimationBH kamehameha;
@@ -159,6 +160,7 @@ void sceneHumanGL() {
 	// 	std::cout << &(*i) << std::endl;
 	// 	i->local.getScale().printData();
 	// }
+
 
 #endif // HUMAN_CLASS
 
@@ -187,6 +189,8 @@ void sceneHumanGL() {
 	b1_rot.addTarget(&bob->_leftThigh);
 	b1_rot.addTarget(&bob->_rightCalf);
 
+	// bob->_rightCalf.addBehavior(&b1_rot);
+
 	TransformBH		b2_rot;
 	b2_rot.transform.rot.setUnit(ROT_DEG);
 	b2_rot.transform.rot.x = 200 * defaultFps->tick;
@@ -198,17 +202,24 @@ void sceneHumanGL() {
 	b2_rot.addTarget(&bob->_leftCalf);
 	b2_rot.addTarget(&bob->_rightThigh);
 
-	// the dab !
-	if (false) {
+
+	
+	if (true) {// the dab !
 		bob->_head.local.setRot(-30,0,0);
-		bob->_trunk.local.setRot(0,180,-15);
+		bob->_trunk.local.setRot(0,0,-15);
 		bob->_leftArm.local.setRot(0,0,-110);
 		bob->_rightArm.local.setRot(110,40,-30);
 		bob->_rightForearm.local.setRot(90,0,-20);
 		bob->_rightThigh.local.setRot(0,0,45);
 		bob->_rightCalf.local.setRot(0,0,-45);
+	} else if (true) {
+		float x = 0.0f;
+		float z = 20.0f;
+		bob->_leftArm.local.setRot(x, 0, -z);
+		bob->_rightArm.local.setRot(x, 0, z);
+		bob->_leftThigh.local.setRot(x, 0, -z);
+		bob->_rightThigh.local.setRot(x, 0, z);
 	}
-
 
 	// avant_bras_gauche.behaviorsActive = false;
 #endif // BEHAVIORS

@@ -16,7 +16,7 @@ public:
 	Obj3d	model;
 };
 
-class Human
+class Human : public Object
 {
 public:
 					Human(Obj3dBP & blueprint, Obj3dPG & program, float thickness = 1.0f, float lenght = 4.0f);
@@ -43,15 +43,12 @@ public:
 	BodyPart	_leftCalf;
 	BodyPart	_rightCalf;
 
-private:
-	Obj3dBP *	_blueprint;
-	Obj3dPG *	_program;
-
+protected:
 	float		_thickness;
 	float		_lenght;
 
 	std::list<Obj3d*>	_objList;
 
-	virtual void		scaleHuman();//children need to update their parent's part too, be sure to call this one too when scaling a child
-	virtual void		positionMembers();//children need to update their parent's part too, be sure to call this one too when scaling a child
+	virtual void		scaleHuman();		//children need to update their parent's part too, be sure to call this one too when scaling a child
+	virtual void		positionMembers();	//children need to update their parent's part too, be sure to call this one too when scaling a child
 };

@@ -1,7 +1,7 @@
 #include "human.hpp"
 
 #define Z_THICKNESS		1.0f
-#define SIZE_HEAD		1.8f
+#define SIZE_HEAD		1.5f
 #define SIZE_MEMBER		1.2f	// size for entire member (thigh+calf and arm+forearm)
 #define SIZE_TRUNK		2.0f	// only X
 #define MIN_THICKNESS	0.1f
@@ -35,6 +35,10 @@ _thickness(thickness), _lenght(lenght)
 	this->_rightCalf.model.local.centered = isCentered;
 	this->scaleHuman();
 	this->positionMembers();
+
+	//rescale left members tmp //FIX 
+	this->_leftArm.local.setScale(-1, 1, 1);
+	this->_leftThigh.local.setScale(-1, 1, 1);
 
 	//hierarchy
 	this->_head.setParent(&this->_trunk);
@@ -79,9 +83,6 @@ _thickness(thickness), _lenght(lenght)
 
 Human &			Human::operator=(const Human & src) {//FIX Obj3d model are well copied ?
 	std::cout << __PRETTY_FUNCTION__ << std::endl;
-	this->_blueprint = src._blueprint;
-	this->_program = src._program;
-
 	this->_thickness = src._thickness;
 	this->_lenght = src._lenght;
 
@@ -140,27 +141,22 @@ void			Human::setMembersSize(float thickness, float lenght) {
 	this->_leftCalf.model.local.setScale(thickness, lenght * SIZE_MEMBER / 2.0f, Z_THICKNESS);
 	this->_rightCalf.model.local.setScale(thickness, lenght * SIZE_MEMBER / 2.0f, Z_THICKNESS);
 
-
-	// invert scale left members on X only
-	// TODO find a better way to place the origin of left members at the 'idoine' corner of the trunk
-	Math::Vector3	s;
-	s = this->_leftArm.model.local.getScale();		this->_leftArm.model.local.setScale(-s.x, s.y, s.z);
-	s = this->_leftForearm.model.local.getScale();	this->_leftForearm.model.local.setScale(-s.x, s.y, s.z);
-	s = this->_leftThigh.model.local.getScale();	this->_leftThigh.model.local.setScale(-s.x, s.y, s.z);
-	s = this->_leftCalf.model.local.getScale();		this->_leftCalf.model.local.setScale(-s.x, s.y, s.z);
-
 	this->positionMembers();
 }
 
 std::list<Obj3d*>	Human::getObjList() const { return (this->_objList); }
 
 void			Human::scaleHuman() {
+	std::cout << __PRETTY_FUNCTION__ << std::endl;
+
 	this->setTrunkSize(this->_thickness, this->_lenght);
 	this->setHeadSize(this->_thickness);
 	this->setMembersSize(this->_thickness, this->_lenght);
 }
 
 void			Human::positionMembers() {
+	std::cout << __PRETTY_FUNCTION__ << std::endl;
+
 	// care, if you want to position a left member, its scale.x is negative! Use absolute value!
 	Math::Vector3 offsetMembre = Math::Vector3(0, -this->_leftArm.model.local.getScale().y, 0);
 	this->_head.local.setPos(this->_trunk.model.local.getScale().x/2 - this->_head.model.local.getScale().x/2, this->_head.model.local.getScale().y, 0);

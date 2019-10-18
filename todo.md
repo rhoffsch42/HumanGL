@@ -1,4 +1,7 @@
 
+HUMANGL:
+- [ ] refacto system de scale, utiliser directement les containers et le system de parenté, cest fait pour ça!
+
 MISC:
 - [ ] make a logfile manager
 
