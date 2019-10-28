@@ -34,6 +34,7 @@ HumanEvolved::~HumanEvolved() {
 
 void	HumanEvolved::scaleHuman() {
 	std::cout << __PRETTY_FUNCTION__ << std::endl;
+	Human::scaleHuman();//the call to the mother class function
 
 	// they call extremity.position() too
 	this->_leftFoot.scale(this->_thickness);
@@ -41,13 +42,12 @@ void	HumanEvolved::scaleHuman() {
 	this->_leftHand.scale(this->_thickness);
 	this->_rightHand.scale(this->_thickness);
 
-
-	Human::scaleHuman();//the call to the mother class function
 	this->positionMembers();
 }
 
 void	HumanEvolved::positionMembers() {
 	std::cout << __PRETTY_FUNCTION__ << std::endl;
+	Human::positionMembers();//the call to the mother class function
 
 	this->_leftFoot.local.setPos(this->_leftCalf.model.local.getScale().x/2 - this->_leftFoot.base.model.local.getScale().x/2, \
 								-this->_leftCalf.model.local.getScale().y, \
@@ -62,7 +62,6 @@ void	HumanEvolved::positionMembers() {
 								-this->_rightForearm.model.local.getScale().y, \
 								this->_rightForearm.model.local.getScale().z/2);
 
-	Human::positionMembers();//the call to the mother class function
 }
 
 void	HumanEvolved::addExtremityToList(Extremity & extremity) {

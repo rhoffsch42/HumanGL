@@ -6,13 +6,14 @@
 /*   By: rhoffsch <rhoffsch@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/09/18 22:45:30 by rhoffsch          #+#    #+#             */
-/*   Updated: 2019/10/18 16:08:28 by rhoffsch         ###   ########.fr       */
+/*   Updated: 2019/10/28 11:15:10 by rhoffsch         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "humangl.h"
 #include "human.hpp"
 #include "humanevolved.hpp"
+#include "supersaiyan1.hpp"
 
 #include <string>
 #include <cstdio>
@@ -136,13 +137,13 @@ void sceneHumanGL() {
 	float		thickness = 1.0f;	// default value
 	float		lenght = 4.0f;		// default value
 
-	HumanEvolved *		bob = new HumanEvolved(cubebp, obj3d_prog);
+	SuperSaiyan1 *		bob = new SuperSaiyan1(cubebp, obj3d_prog);
 	// bob->setMembersSize(thickness*3, lenght*8);
 	// bob->setTrunkSize(thickness * 5, lenght*5);
 	// bob->setHeadSize(thickness * 2);
 
-	bob->setLenght(lenght*2);
-	bob->setThickness(thickness*2);
+	bob->setLenght(lenght*3);
+	bob->setThickness(thickness*3);
 	// HumanEvolved		jack = new HumanEvolved(bob);
 	// SuperSaiyan1	goku(jack);
 	// goku.setHairColor(BLOND);
@@ -204,7 +205,7 @@ void sceneHumanGL() {
 
 
 	
-	if (true) {// the dab !
+	if (false) {// the dab !
 		bob->_head.local.setRot(-30,0,0);
 		bob->_trunk.local.setRot(0,0,-15);
 		bob->_leftArm.local.setRot(0,0,-110);
@@ -212,7 +213,7 @@ void sceneHumanGL() {
 		bob->_rightForearm.local.setRot(90,0,-20);
 		bob->_rightThigh.local.setRot(0,0,45);
 		bob->_rightCalf.local.setRot(0,0,-45);
-	} else if (true) {
+	} else if (false) {
 		float x = 0.0f;
 		float z = 20.0f;
 		bob->_leftArm.local.setRot(x, 0, -z);

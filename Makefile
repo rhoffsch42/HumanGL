@@ -6,7 +6,7 @@
 #    By: rhoffsch <rhoffsch@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/05/15 17:38:19 by rhoffsch          #+#    #+#              #
-#    Updated: 2019/10/18 17:46:59 by rhoffsch         ###   ########.fr        #
+#    Updated: 2019/10/28 10:07:16 by rhoffsch         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -32,7 +32,8 @@ CC_NEEDS		=	$(FRAMEWORKS) $(GLFW) $(GLEW)
 SRC_FILE		=	main.cpp \
 					human.cpp \
 					humanevolved.cpp \
-					extremity.cpp
+					extremity.cpp \
+					supersaiyan1.cpp
 
 HDR_FILE		=	humangl.h
 
