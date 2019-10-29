@@ -62,7 +62,8 @@ SGL_SRC_FILE	=	blueprint.cpp \
 					texture.cpp \
 					behavior.cpp \
 					behaviormanaged.cpp \
-					transformBH.cpp
+					transformBH.cpp \
+					fps.cpp
 
 SGL_DIR			=	SimpleGL
 SGL_OBJ_DIR		=	$(SGL_DIR)/obj

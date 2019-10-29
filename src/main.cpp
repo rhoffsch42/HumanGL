@@ -3,7 +3,7 @@
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: rhoffsch <rhoffsch@student.42.fr>          +#+  +:+       +#+        */
+/*   By: jfortin <jfortin@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/09/18 22:45:30 by rhoffsch          #+#    #+#             */
 /*   Updated: 2019/10/28 11:15:10 by rhoffsch         ###   ########.fr       */
@@ -25,52 +25,7 @@
 #include <unistd.h>
 #endif
 
-class Fps
-{
-public:
-	Fps(int fps_val) {
-		this->fps = fps_val;
-		this->old_fps = fps_val;
-		this->tick = 1.0 / this->fps;
-		this->last_time = glfwGetTime();
-		this->ellapsed_time = 0.0;
-	}
-	double				fps;
-	double				old_fps;
-	double				tick;
-	double				ellapsed_time;
-	double				last_time;
-
-	bool		wait_for_next_frame() {
-		this->ellapsed_time = glfwGetTime() - this->last_time;
-		if (this->ellapsed_time >= this->tick)
-		{
-			this->last_time += this->ellapsed_time;
-			this->ellapsed_time = 0.0;
-			return (true);
-		}
-		else
-			return (false);
-	}
-};
-
-void	printFps() {
-	static double last_time = 0;
-	static double ellapsed_time = 0;
-	double	current_time;
-	double	fps;
-	double	cent;
-	current_time = glfwGetTime();
-	ellapsed_time = current_time - last_time;
-	fps = 1.0 / ellapsed_time;
-	cent = fps - double(int(fps));
-	if (cent >= 0.5)
-		fps += 1.0;
-	cout << (float)current_time << "\t" << int(fps) << "fps" << endl;
-	last_time += ellapsed_time;
-}
-
-void	renderObj3d(list<Obj3d*>	obj3dList, Cam& cam) {
+void  renderObj3d(list<Obj3d*> obj3dList, Cam& cam) {
 	// cout << "render all Obj3d" << endl;
 	//assuming all Obj3d have the same program
 	Obj3d*		obj = *(obj3dList.begin());
@@ -124,7 +79,6 @@ void sceneHumanGL() {
 
 #ifndef HUMAN_CLASS
 	std::list<Obj3d*>	obj3dList;
-
 	/*
 		class Human { ... };
 		class HumanEvolved : public Human { more members };
@@ -155,6 +109,7 @@ void sceneHumanGL() {
 	// kamehameha.run()
 
 	obj3dList = bob->getObjList();
+
 	// std::cout << "adresses main:" << std::endl;
 	// std::cout << obj3dList.size() << std::endl;
 	// for (auto i : obj3dList) {
@@ -174,16 +129,16 @@ void sceneHumanGL() {
 
 	TransformBH		b0_rot;
 	b0_rot.transform.rot.setUnit(ROT_DEG);
-	b0_rot.transform.rot.y = 80 * defaultFps->tick;
+	b0_rot.transform.rot.y = 80 * defaultFps->getTick();
 	b0_rot.modeRot = ADDITIVE;
 	b0_rot.addTarget(&bob->_trunk);
 
 
 	TransformBH		b1_rot;
 	b1_rot.transform.rot.setUnit(ROT_DEG);
-	b1_rot.transform.rot.x = 200 * defaultFps->tick;
-	b1_rot.transform.rot.y = 100 * defaultFps->tick;
-	b1_rot.transform.rot.z = 60 * defaultFps->tick;
+	b1_rot.transform.rot.x = 200 * defaultFps->getTick();
+	b1_rot.transform.rot.y = 100 * defaultFps->getTick();
+	b1_rot.transform.rot.z = 60 * defaultFps->getTick();
 	b1_rot.modeRot = ADDITIVE;
 	b1_rot.addTarget(&bob->_rightArm);
 	b1_rot.addTarget(&bob->_rightForearm);
@@ -194,9 +149,9 @@ void sceneHumanGL() {
 
 	TransformBH		b2_rot;
 	b2_rot.transform.rot.setUnit(ROT_DEG);
-	b2_rot.transform.rot.x = 200 * defaultFps->tick;
-	b2_rot.transform.rot.y = 80 * defaultFps->tick;
-	b2_rot.transform.rot.y = 250 * defaultFps->tick;
+	b2_rot.transform.rot.x = 200 * defaultFps->getTick();
+	b2_rot.transform.rot.y = 80 * defaultFps->getTick();
+	b2_rot.transform.rot.y = 250 * defaultFps->getTick();
 	b2_rot.modeRot = ADDITIVE;
 	b2_rot.addTarget(&bob->_leftArm);
 	b2_rot.addTarget(&bob->_leftForearm);
@@ -259,7 +214,7 @@ void sceneHumanGL() {
 
 			glfwPollEvents();
 			glfw.updateMouse(); // to do before cam's events
-			cam.events(glfw, float(defaultFps->tick));
+			cam.events(glfw, float(defaultFps->getTick()));
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 			renderObj3d(obj3dList, cam);
 			renderSkybox(skybox, cam);
