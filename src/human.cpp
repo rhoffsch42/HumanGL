@@ -21,18 +21,6 @@ _rightCalf(blueprint, program), \
 _thickness(thickness), _lenght(lenght)
 {
 	std::cout << __PRETTY_FUNCTION__ << std::endl;
-	// centered ? //FIX will be changed/refacto in SimpleGL
-	bool isCentered = false;
-	this->_head.model.local.centered = isCentered;
-	this->_trunk.model.local.centered = isCentered;
-	this->_leftArm.model.local.centered = isCentered;
-	this->_rightArm.model.local.centered = isCentered;
-	this->_leftThigh.model.local.centered = isCentered;
-	this->_rightThigh.model.local.centered = isCentered;
-	this->_leftForearm.model.local.centered = isCentered;
-	this->_rightForearm.model.local.centered = isCentered;
-	this->_leftCalf.model.local.centered = isCentered;
-	this->_rightCalf.model.local.centered = isCentered;
 	this->scaleHuman();
 	this->positionMembers();
 
@@ -147,15 +135,17 @@ void			Human::setMembersSize(float thickness, float lenght) {
 std::list<Obj3d*>	Human::getObjList() const { return (this->_objList); }
 
 void			Human::scaleHuman() {
-	std::cout << __PRETTY_FUNCTION__ << std::endl;
+	// std::cout << __PRETTY_FUNCTION__ << std::endl;
 
 	this->setTrunkSize(this->_thickness, this->_lenght);
 	this->setHeadSize(this->_thickness);
 	this->setMembersSize(this->_thickness, this->_lenght);
+
+	this->updateMembersAnchor();
 }
 
 void			Human::positionMembers() {
-	std::cout << __PRETTY_FUNCTION__ << std::endl;
+	// std::cout << __PRETTY_FUNCTION__ << std::endl;
 
 	// care, if you want to position a left member, its scale.x is negative! Use absolute value!
 	Math::Vector3 offsetMembre = Math::Vector3(0, -this->_leftArm.model.local.getScale().y, 0);
@@ -168,4 +158,17 @@ void			Human::positionMembers() {
 	this->_rightThigh.local.setPos(this->_trunk.model.local.getScale().x - this->_rightThigh.model.local.getScale().x, -this->_trunk.model.local.getScale().y, 0);
 	this->_leftCalf.local.setPos(offsetMembre);
 	this->_rightCalf.local.setPos(offsetMembre);
+}
+
+void			Human::updateMembersAnchor() {
+	this->_head.updateAnchor();
+	this->_trunk.updateAnchor();
+	this->_leftArm.updateAnchor();
+	this->_rightArm.updateAnchor();
+	this->_leftForearm.updateAnchor();
+	this->_rightForearm.updateAnchor();
+	this->_leftThigh.updateAnchor();
+	this->_rightThigh.updateAnchor();
+	this->_leftCalf.updateAnchor();
+	this->_rightCalf.updateAnchor();
 }

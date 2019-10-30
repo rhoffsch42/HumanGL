@@ -9,6 +9,7 @@ class SuperSaiyan1 : public HumanEvolved
 public:
 	SuperSaiyan1(Obj3dBP & blueprint, Obj3dPG & program, float thickness = 1.0f, float lenght = 4.0f);
 	~SuperSaiyan1();
+	void	setHairColor(uint8_t r, uint8_t g, uint8_t b);
 
 	BodyPart	*hairs[NB_HAIR]; // array
 protected:

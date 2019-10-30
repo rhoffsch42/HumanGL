@@ -12,8 +12,17 @@ class BodyPart : public Object
 public:
 	BodyPart(Obj3dBP & blueprint, Obj3dPG & program) : model(blueprint, program) {
 		this->model.setParent(this);
+		this->updateAnchor();
 	}
-	Obj3d	model;
+	Obj3d			model;
+	Math::Vector3	anchor;
+	void			updateAnchor(void) {
+		Math::Vector3	s = this->model.local.getScale();
+		this->anchor = Math::Vector3(s.x/2, 0, s.z/2);
+	}
+	void			rotateMember(Math::Rotation rot) {
+		this->local.rotateAround(this->anchor, rot);
+	}
 };
 
 class Human : public Object
@@ -49,6 +58,7 @@ protected:
 
 	std::list<Obj3d*>	_objList;
 
-	virtual void		scaleHuman();		//children need to update their parent's part too, be sure to call this one too when scaling a child
-	virtual void		positionMembers();	//children need to update their parent's part too, be sure to call this one too when scaling a child
+	virtual void		scaleHuman();			//children need to update their parent's part too, be sure to call this one too when scaling a child
+	virtual void		positionMembers();		//children need to update their parent's part too, be sure to call this one too when scaling a child
+	virtual void		updateMembersAnchor();	//children need to update their parent's part too, be sure to call this one too when scaling a child
 };

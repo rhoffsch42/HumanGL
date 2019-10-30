@@ -3,7 +3,7 @@
 #define HAIR_THICKNESS	0.1f
 #define HAIR_LEN		0.5f
 #define HAIR_ANGLE		5.0f
-#define HAIR_COLOR		1, 0, 0 //yellow
+#define HAIR_COLOR		0, 0, 0 //black
 
 /*
 	https://en.cppreference.com/w/cpp/language/list_initialization
@@ -30,8 +30,15 @@ SuperSaiyan1::~SuperSaiyan1() {
 	}
 }
 
+void	SuperSaiyan1::setHairColor(uint8_t r, uint8_t g, uint8_t b) {
+	for (int i = 0; i < NB_HAIR; i++) {
+		this->hairs[i]->model.setColor(r, g, b);
+	}
+}
+
+
 void		SuperSaiyan1::scaleHuman() {
-	std::cout << __PRETTY_FUNCTION__ << std::endl;
+	// std::cout << __PRETTY_FUNCTION__ << std::endl;
 	HumanEvolved::scaleHuman();//the call to the mother class function
 	Math::Vector3	headScale = this->_head.model.local.getScale();
 	for (int i = 0; i < NB_HAIR; i++) {
@@ -41,7 +48,7 @@ void		SuperSaiyan1::scaleHuman() {
 	this->positionMembers();
 }
 void		SuperSaiyan1::positionMembers() {
-	std::cout << __PRETTY_FUNCTION__ << std::endl;
+	// std::cout << __PRETTY_FUNCTION__ << std::endl;
 	HumanEvolved::positionMembers();//the call to the mother class function
 	
 	Math::Vector3	headScale = this->_head.model.local.getScale();
@@ -52,6 +59,5 @@ void		SuperSaiyan1::positionMembers() {
 
 	for (int i = 0; i < NB_HAIR; i++) {
 			this->hairs[i]->local.setPos(float(i) * p - offsetSide, offsetSide, 1.0f + offsetSide*5);
-			std::cout << float(i) * p - 0 << std::endl;
 	}
 }

@@ -6,7 +6,7 @@
 #    By: rhoffsch <rhoffsch@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/05/15 17:38:19 by rhoffsch          #+#    #+#              #
-#    Updated: 2019/10/28 10:07:16 by rhoffsch         ###   ########.fr        #
+#    Updated: 2019/10/30 10:45:25 by rhoffsch         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -62,7 +62,8 @@ SGL_SRC_FILE	=	blueprint.cpp \
 					texture.cpp \
 					behavior.cpp \
 					behaviormanaged.cpp \
-					transformBH.cpp
+					transformBH.cpp \
+					fps.cpp
 
 SGL_DIR			=	SimpleGL
 SGL_OBJ_DIR		=	$(SGL_DIR)/obj

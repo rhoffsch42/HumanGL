@@ -33,7 +33,7 @@ HumanEvolved::~HumanEvolved() {
 }
 
 void	HumanEvolved::scaleHuman() {
-	std::cout << __PRETTY_FUNCTION__ << std::endl;
+	// std::cout << __PRETTY_FUNCTION__ << std::endl;
 	Human::scaleHuman();//the call to the mother class function
 
 	// they call extremity.position() too
@@ -46,7 +46,7 @@ void	HumanEvolved::scaleHuman() {
 }
 
 void	HumanEvolved::positionMembers() {
-	std::cout << __PRETTY_FUNCTION__ << std::endl;
+	// std::cout << __PRETTY_FUNCTION__ << std::endl;
 	Human::positionMembers();//the call to the mother class function
 
 	this->_leftFoot.local.setPos(this->_leftCalf.model.local.getScale().x/2 - this->_leftFoot.base.model.local.getScale().x/2, \

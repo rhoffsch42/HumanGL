@@ -1,12 +1,12 @@
 
 HUMANGL:
-- [ ] refacto system de scale, utiliser directement les containers et le system de parenté, cest fait pour ça!
+- [X] refacto system de scale, utiliser directement les containers et le system de parenté, cest fait pour ça!
 
 MISC:
 - [ ] make a logfile manager
 
 RENDU VOGSPHERE:
-- [ ] le submodule doit pointer sur un commit fixe
+- [ ] fusionner les src
 
 SimpleGL:
 - [ ] FIX `Obj3d::setColor(uint8_t,uint8_t,uint8_t)` probleme de conversion, shader ?
@@ -18,3 +18,6 @@ model.setColor(5, 70, 100); // <=> WHITE (255,255,255)
 - [ ] FIX setOrigin/center system refacto:
 	- to center obj3d: change origin during obj3d creation (offset every vertices)
 	- make a `::rotateAround(Vector3 pos)` function
+- [ ] REFACTO replace all `NULL` by `nullptr` for pointers
+- [ ] FIX cursor lock with tab key
+	- assign function to key/scancode (function ptr array)
