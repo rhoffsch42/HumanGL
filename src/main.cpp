@@ -6,7 +6,7 @@
 /*   By: rhoffsch <rhoffsch@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/09/18 22:45:30 by rhoffsch          #+#    #+#             */
-/*   Updated: 2019/10/30 11:13:42 by rhoffsch         ###   ########.fr       */
+/*   Updated: 2019/10/30 11:20:01 by rhoffsch         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,7 +70,6 @@ void sceneHumanGL() {
 
 #ifndef HUMAN_CLASS
 	std::list<Obj3d*>	obj3dList;
-
 	/*
 		class Human { ... };
 		class HumanEvolved : public Human { more members };
@@ -101,6 +100,7 @@ void sceneHumanGL() {
 	// kamehameha.run()
 
 	obj3dList = bob->getObjList();
+
 	// std::cout << "adresses main:" << std::endl;
 	// std::cout << obj3dList.size() << std::endl;
 	// for (auto i : obj3dList) {
