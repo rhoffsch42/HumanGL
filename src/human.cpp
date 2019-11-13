@@ -42,7 +42,7 @@ _thickness(thickness), _lenght(lenght)
 
 	//colors
 	this->_head.model.setColor((char)1, (char)1, 0);
-	this->_trunk.model.setColor(50, 0, 10);
+	this->_trunk.model.setColor(50, 20, 10);
 	this->_leftArm.model.setColor(0, 0xff, 0);
 	this->_rightArm.model.setColor(0, 0, 0xff);
 	this->_leftForearm.model.setColor(0xff, 0, 0);

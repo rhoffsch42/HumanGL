@@ -17,11 +17,17 @@ public:
 	Obj3d			model;
 	Math::Vector3	anchor;
 	void			updateAnchor(void) {
+		std::cout << __PRETTY_FUNCTION__ << std::endl;
+		BodyPart *	parent = dynamic_cast<BodyPart*>(this->model.getParent());
+		Math::Vector3	ps = parent->model.local.getScale();
 		Math::Vector3	s = this->model.local.getScale();
-		this->anchor = Math::Vector3(s.x/2, 0, s.z/2);
+		// this->anchor = Math::Vector3(ps.x, 0, 0);
+		this->anchor = this->local.getPos();//care, if the rotation of the object is not 0,0,0 the pos is not what we're looking for
+		this->anchor.add(Math::Vector3(s.x/2, -(0), s.z/2));//negative y because the cube has negative y vertices
 	}
 	void			rotateMember(Math::Rotation rot) {
-		this->local.rotateAround(this->anchor, rot);
+		this->local.rotate(rot);
+		// this->local.rotateAround(this->anchor, rot);//FIX not working (SimpleGL)
 	}
 };
 
