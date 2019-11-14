@@ -6,7 +6,7 @@
 /*   By: rhoffsch <rhoffsch@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/09/18 22:45:30 by rhoffsch          #+#    #+#             */
-/*   Updated: 2019/11/13 17:31:12 by rhoffsch         ###   ########.fr       */
+/*   Updated: 2019/11/14 19:02:36 by rhoffsch         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,56 +26,91 @@
 #endif
 
 
-class GameManager {
-public:
-	GameManager() {}
-	~GameManager() {}
-	Glfw *		glfw;
-	Human *		human;
-	BodyPart *	currentSelection;
-private:
-};
+void	_intToRGB(unsigned int value, uint8_t * dst) {
+	unsigned char * p = reinterpret_cast<unsigned char *>(&value);
+	dst[0] = p[0];
+	dst[1] = p[1];
+	dst[2] = p[2];
+}
+void	_RGBToInt(uint8_t * rgb, unsigned int * dst) {
+	*dst = 0;
+	unsigned char * p = reinterpret_cast<unsigned char *>(dst);
+	p[0] = rgb[0];
+	p[1] = rgb[1];
+	p[2] = rgb[2];
+}
+void	_test_conv() {
+	unsigned int id = 95642;
+	uint8_t rgb[3];
+	_intToRGB(id, &(rgb[0]));
+	std::cout << (int)rgb[0] << ", " << (int)rgb[1] << ", " << (int)rgb[2] << std::endl;
+	unsigned int ret;
+	_RGBToInt(&(rgb[0]), &ret);
+	std::cout << ret << " == " << id << std::endl;
+	exit(0);
+}
 
 class FrameBuffer {
 	/*
 		http://www.songho.ca/opengl/gl_fbo.html
 		MSAA https://learnopengl.com/Advanced-OpenGL/Anti-Aliasing
+		https://alexandre-laurent.developpez.com/tutoriels/OpenGL/OpenGL-FBO/
 	*/
 public:
-	FrameBuffer(int width, int height) {
-		this->rbo_format = GL_RGB;
-		this->rbo_width = width;
-		this->rbo_height = height;
+	FrameBuffer(int w, int h) {
+		this->rbo_format = GL_DEPTH_COMPONENT;
+		this->tex_format = GL_RGBA;
+		this->width = w;
+		this->height = h;
 
 		if (1) {//TODO check 0 < width & height < GL_MAX_RENDERBUFFER_SIZE
 			//resize
 		}
 
+		// frame buffer
 		glGenFramebuffers(1, &this->fbo_id);
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		
-		glGenRenderbuffers(1, &this->rbo_id);
-		glBindRenderbuffer(GL_RENDERBUFFER, 0);
-		glRenderbufferStorage(GL_RENDERBUFFER, this->rbo_format, this->rbo_width, this->rbo_height);
+		glBindFramebuffer(GL_FRAMEBUFFER, this->fbo_id);
 
+		// render buffer
+		glGenRenderbuffers(1, &this->rbo_id);
+		glBindRenderbuffer(GL_RENDERBUFFER, this->rbo_id);
+		glRenderbufferStorage(GL_RENDERBUFFER, this->rbo_format, this->width, this->height);
+
+		// texture
+		glGenTextures(1, &this->tex_id);
+		glBindTexture(GL_TEXTURE_2D, this->tex_id);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE); // automatic mipmap
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, this->width, this->height, 0, this->tex_format, GL_UNSIGNED_BYTE, NULL);
+		glBindTexture(GL_TEXTURE_2D, 0);
+
+		// attach
+		std::cout << "attach: " << this->fbo_id << " : " << this->rbo_id << " | " << this->tex_id << std::endl;
 		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, this->rbo_id);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,	this->tex_id, 0);// mipmap level: 0(base)
 
 		this->fbo_status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
 
+		glBindTexture(GL_TEXTURE_2D, 0);
 		glBindRenderbuffer(GL_RENDERBUFFER, 0);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	}
 	~FrameBuffer() {
-		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, 0);//detach renderbuffer
+		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, 0);//0 = detach renderbuffer
 		glDeleteRenderbuffers(1, &this->rbo_id);
 		glDeleteFramebuffers(1, &this->fbo_id);
 	}
 	GLuint	fbo_id;
 	GLenum	fbo_status;
+	int		width;
+	int		height;
 	GLuint	rbo_id;
-	GLuint  rbo_format;
-	int		rbo_width;
-	int		rbo_height;
+	GLenum  rbo_format;
+	GLuint	tex_id;
+	GLenum  tex_format;
 
 	bool checkFramebufferStatus(GLuint fbo)
 	{
@@ -130,6 +165,121 @@ public:
 private:
 };
 
+class GameManager {
+public:
+	GameManager() {}
+	~GameManager() {}
+	Glfw *			glfw;
+	Object *		currentSelection;
+	list<Object*> *	objectList;
+	Cam *			cam;
+private:
+};
+class HumanManager : public GameManager {
+public:
+	list<Obj3d*>	obj3dList;
+	Human *			human;
+	FrameBuffer *	fb;
+private:
+};
+
+void	getObjectOnClic(int x, int y, HumanManager * manager) {
+	list<Obj3d*>	obj3dList = manager->human->getObjList();//should return full list depending on Human type
+	std::cout << "searching from " << obj3dList.size() << " obj3d" << std::endl;
+	y = manager->glfw->getHeight() - y;
+	std::cout << "pos: " << x << " - " << y << std::endl;
+	GLubyte data[4];//RGBA
+
+	if (1) {
+		glBindFramebuffer(GL_FRAMEBUFFER, manager->fb->fbo_id);
+
+		Obj3d*		obj = *(obj3dList.begin());
+		Obj3dPG&	pg = obj->getProgram();
+		glUseProgram(pg._program);//used once for all obj3d
+		Math::Matrix4	proMatrix(manager->cam->getProjectionMatrix());
+		Math::Matrix4	viewMatrix = manager->cam->getViewMatrix();
+		proMatrix.mult(viewMatrix);// do it in shader ? NO cauz shader will do it for every vertix
+		for (Obj3d* object : obj3dList)
+			// object->render (proMatrix);
+			pg.renderUniqueColor(*object, proMatrix);
+		// for (Obj3d* object : obj3dList) { // this has to be done after all objects are rendered!
+		// 	object->local._matrixChanged = false; nope, not here
+		// 	object->_worldMatrixChanged = false; nope, not here
+		// }
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	}
+	
+
+	glReadPixels(x,	y, 1, 1, GL_RGB, GL_UNSIGNED_BYTE, &data);
+	unsigned int id = 0;
+	_RGBToInt(&(*data), &id);
+	std::cout << "id is " << id << " (" << (int)data[0] << ", " << (int)data[1] << ", " << (int)data[2] << ")" << std::endl;
+	for (auto it : obj3dList) {
+		if (it->getId() == id)
+			std::cout << "Found!" << std::endl;
+	}
+}
+
+void		HumanMouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
+	(void)window;(void)button;(void)action;(void)mods;
+	// std::cout << __PRETTY_FUNCTION__ << std::endl;
+	if (action == GLFW_PRESS) {
+		HumanManager * hmanager = static_cast<HumanManager*>(glfwGetWindowUserPointer(window));//dynamic_cast cannot work, as void* lose polymorphisme metadata
+		if (!hmanager) {
+			std::cout << "Error: Wrong pointer type, HumanManager * expected" << std::endl;
+			return ;
+		}
+		if (hmanager->glfw->cursorFree == true) {
+			double x, y;
+			glfwGetCursorPos(window, &x, &y);
+			std::cout << x << " : " << y;
+			if (button == GLFW_MOUSE_BUTTON_RIGHT)
+				std::cout << "\tright button" << std::endl;
+			else if (button == GLFW_MOUSE_BUTTON_LEFT)
+				std::cout << "\tleft button" << std::endl;
+			getObjectOnClic(x, y, hmanager);
+		} else {
+			std::cout << "not cursorFree ?!" << std::endl;
+		}
+	}
+}
+static void		HumanKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+	// std::cout << __PRETTY_FUNCTION__ << std::endl;
+	if (false) {
+		std::cout << "keys: " << key << std::endl;
+		std::cout << "scancode: " << scancode << std::endl;
+		std::cout << "action: " << action << std::endl;
+		std::cout << "mods: " << mods << std::endl;
+	}
+	(void)window;(void)key;(void)scancode;(void)action;(void)mods;
+
+	HumanManager * manager = static_cast<HumanManager*>(glfwGetWindowUserPointer(window));//dynamic_cast cannot work, as void* lose polymorphisme metadata
+	if (manager->glfw->func[key])
+		(manager->glfw->func[key])(window, key, scancode, action, mods);
+}
+
+void		HumanKeyCallback_tab(GLFWwindow* window, int key, int scancode, int action, int mods) {
+	(void)window;(void)key;(void)scancode;(void)action;(void)mods;
+	std::cout << __PRETTY_FUNCTION__ << std::endl;
+
+	if (action == GLFW_PRESS) {
+		std::cout << "tab press" << std::endl;
+		HumanManager * manager = static_cast<HumanManager*>(glfwGetWindowUserPointer(window));//dynamic_cast cannot work, as void* lose polymorphisme metadata
+		manager->glfw->toggleCursor();
+	}
+}
+
+
+void	printPixelRGB(int x, int y, GLenum format, string prefix) {
+	GLubyte data[4];//RGBA
+	glReadPixels(x,	y, 1, 1, format, GL_UNSIGNED_BYTE, &data);
+	std::cout << prefix << "RGB(" << (unsigned int)data[0] << ", " \
+						<< (unsigned int)data[1] << ", " \
+						<< (unsigned int)data[2] << ")" << std::endl;
+}
+
+
+
 void	renderObj3d(list<Obj3d*>	obj3dList, Cam& cam) {
 	// cout << "render all Obj3d" << endl;
 	//assuming all Obj3d have the same program
@@ -166,6 +316,12 @@ void sceneHumanGL() {
 	Glfw		glfw(WINX, WINY); // screen size
 	glDisable(GL_CULL_FACE);
 
+	glfwSetMouseButtonCallback(glfw._window, HumanMouseButtonCallback);//override default callback
+	glfwSetKeyCallback(glfw._window, HumanKeyCallback);
+	//glfw key map
+	glfw.func[GLFW_KEY_TAB] = HumanKeyCallback_tab;
+
+
 	Obj3dPG		obj3d_prog(std::string(sgl_dir + OBJ3D_VS_FILE), std::string(sgl_dir + OBJ3D_FS_FILE));
 	SkyboxPG	sky_pg(std::string(sgl_dir + CUBEMAP_VS_FILE), std::string(sgl_dir + CUBEMAP_FS_FILE));
 
@@ -190,6 +346,8 @@ void sceneHumanGL() {
 	float		lenght = 4.0f;		// default value
 
 	SuperSaiyan1 *		bob = new SuperSaiyan1(cubebp, obj3d_prog);
+	std::cout << bob->_trunk.model.getId() << " trunk id" << std::endl;
+	std::cout << bob->_head.model.getId() << " head id" << std::endl;
 	// bob->setMembersSize(thickness*3, lenght*8);
 	// bob->setTrunkSize(thickness * 5, lenght*5);
 	// bob->setHeadSize(thickness * 2);
@@ -377,27 +535,89 @@ glfw.setMouseAngle(-1);
 	obj3dList.push_back(&cubedir);	// 99
 #endif
 
-
 	obj3dList = bob->getObjList();
+
+// #define FRAMEBUFFER
 #ifndef FRAMEBUFFER
-	FrameBuffer	fb(WINX, WINY);
-	if (fb.fbo_status != GL_FRAMEBUFFER_COMPLETE) {
-		std::cout << "FraneBuffer() failed : " << fb.fbo_status << std::endl;
-		fb.checkFramebufferStatus(fb.fbo_id);
+	FrameBuffer	fb1(WINX, WINY);
+	FrameBuffer	fb2(WINX, WINY);
+	if (fb1.fbo_status != GL_FRAMEBUFFER_COMPLETE || fb2.fbo_status != GL_FRAMEBUFFER_COMPLETE) {
+		std::cout << "FraneBuffer() failed : " << fb1.fbo_status << std::endl;
+		fb1.checkFramebufferStatus(fb1.fbo_id);
+		fb2.checkFramebufferStatus(fb2.fbo_id);
 		exit(10);
 	}
-	// glBindFramebuffer(GL_FRAMEBUFFER, fb.fbo_id);
+	std::cout << std::endl;
+	
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+	FrameBuffer * list[2] = {&fb1, &fb2};
+	if (1) {
+		for (size_t i = 0; i < 1; i++) {
+			FrameBuffer * fb = list[i];
+			std::cout << "fb: " << fb->fbo_id << std::endl;
+			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fb->fbo_id);
+			// glClearColor(0.5f/(i+1), 0.5f/(i+1), 0.5f/(i+1), 1.0f);//= RGB(25, 51, 102);	//to do before glClear()
+			glClearColor(0, 0, 0, 1.0f);//= RGB(25, 51, 102);	//to do before glClear()
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+			glBindFramebuffer(GL_READ_FRAMEBUFFER, fb->fbo_id);
+			printPixelRGB(WINX/2,WINY/2, fb->tex_format, "clear ");
+			printPixelRGB(WINX/2,WINY/2, fb->rbo_format, "rbo ");
+
+			// glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fb->fbo_id);
+			// renderObj3d(obj3dList, cam);
+			// renderSkybox(skybox, cam);
+
+			printPixelRGB(WINX/2,WINY/2, fb->tex_format, "fb ");
+
+			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+			glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+			std::cout << std::endl;
+		}
+	}
+	if (false) {
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, fb1.fbo_id);
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fb2.fbo_id);
+		glBlitFramebuffer(0, 0, WINX, WINY, 0, 0, WINX, WINY, GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT, GL_NEAREST);
+
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, fb2.fbo_id);
+		printPixelRGB(WINX/2,WINY/2, fb2.tex_format, "fb2 tex");
+		printPixelRGB(WINX/2,WINY/2, fb2.rbo_format, "fb2 rbo");
+	}
+	if (false) {
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, fb1.fbo_id);
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+		glBlitFramebuffer(0, 0, WINX, WINY, 0, 0, WINX, WINY, GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT, GL_NEAREST);
+	}
+
+	fb1.checkFramebufferStatus(0);
+	fb1.checkFramebufferStatus(fb1.fbo_id);
+	fb1.checkFramebufferStatus(fb2.fbo_id);
+	GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+
+// exit(0);
 #endif
 #ifndef GAMEMANAGER
-	GameManager	gameManager;
+	HumanManager	gameManager;
 	gameManager.glfw = &glfw;
 	gameManager.human = bob;
+	#ifndef FRAMEBUFFER
+	gameManager.fb = &fb1;
+	#endif
+	gameManager.cam = &cam;
+
+	glfwSetWindowUserPointer(gameManager.glfw->_window, &gameManager);
 
 
-	// GLFWwindow *	fullWin = glfwCreateWindow(WINX, WINY, "My Title", glfwGetPrimaryMonitor(), NULL);
+	// GLFWwindow *	fullWin = glfwCreateWindow(WINX, WINY, "My Title", glfwGetPrimaryMonitor(), NULL);//fullscreen
 	GLFWwindow *	winUsed = glfw._window;
-	GLFWmonitor* monitor = glfwGetWindowMonitor(winUsed);
+	GLFWmonitor *	monitor = glfwGetWindowMonitor(winUsed);
 	if (monitor) {//fullscreen
 		const GLFWvidmode* mode = glfwGetVideoMode(monitor);
 		glfwSetWindowMonitor(winUsed, monitor, 0, 0, mode->width, mode->height, mode->refreshRate);
@@ -416,6 +636,7 @@ glfw.setMouseAngle(-1);
 	float ti = defaultFps->getTick();
 	double t = glfwGetTime();
 	// glfwSwapInterval(1);
+
 	while (!glfwWindowShouldClose(glfw._window)) {
 		if (defaultFps->wait_for_next_frame()) {
 			// Fps::printGlobalFps();
@@ -425,16 +646,8 @@ glfw.setMouseAngle(-1);
 			b2_rot.run();
 			// b5.run();
 			
-			if (true) {
-				GLubyte data[3];//RGB
-				int x = 0;
-				int y = 0;
-				glReadPixels(x,	y, 1, 1, GL_RGB, GL_UNSIGNED_BYTE, &data);
-				std::cout << (int)data[0] << std::endl;
-				std::cout << (int)data[1] << std::endl;
-				std::cout << (int)data[2] << std::endl;
-				std::cout << std::endl;
-			}
+			// printPixelRGB(0,0,GL_RGB, "");
+			
 			#ifdef TESTCUBE
 				std::cout << "tik: " << ti << std::endl;
 				float r = 40 * ti;
@@ -449,12 +662,24 @@ glfw.setMouseAngle(-1);
 				// cube.local.rotateAround(center.local.getPos(), Math::Rotation(r,r,0));
 			#endif
 
+
 			glfwPollEvents();
 			glfw.updateMouse(); // to do before cam's events
 			cam.events(glfw, float(defaultFps->getTick()));
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 			renderObj3d(obj3dList, cam);
 			renderSkybox(skybox, cam);
+
+			#ifndef FRAMEBUFFER
+				if (true) {//override window-system-provided framebuffer
+					glBindFramebuffer(GL_READ_FRAMEBUFFER, fb1.fbo_id);
+					glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+					glBlitFramebuffer(0, 0, WINX, WINY, 0, 0, WINX, WINY, GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT, GL_NEAREST);
+					glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+					glBindFramebuffer(GL_FRAMEBUFFER, 0);
+				}
+			#endif
+			
 			glfwSwapBuffers(glfw._window);
 			if (GLFW_PRESS == glfwGetKey(glfw._window, GLFW_KEY_ESCAPE))
 				glfwSetWindowShouldClose(glfw._window, GLFW_TRUE);
