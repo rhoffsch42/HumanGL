@@ -1,8 +1,8 @@
 
 #include "extremity.hpp"
 
-#define FINGER_SCALE	Math::Vector3(0.22f, 0.22f, 1.0f)
-#define BASE_SCALE		Math::Vector3(1, 0.30f, 1.0f)
+#define FINGER_SCALE	Math::Vector3(0.22f, 1.0f, 0.22f)
+#define BASE_SCALE		Math::Vector3(1.0f, 1.0f, 0.30f)
 #define SPACING			0.05f
 #define FINGER_COLOR	255, 255, 0
 #define BASE_COLOR		255, 0, 0
@@ -22,11 +22,11 @@ finger5(blueprint, program)
 	this->finger4.setParent(&base);
 	this->finger5.setParent(&base);
 
-	this->finger1.model.local.setRot(0, -20, 0);
-	this->finger2.model.local.setRot(0, -20, 0);
-	this->finger3.model.local.setRot(0, -10, 0);
-	this->finger4.model.local.setRot(0, 10, 0);
-	this->finger5.model.local.setRot(0, 20, 0);
+	this->finger1.model.local.setRot(0, 0, -20);
+	this->finger2.model.local.setRot(0, 0, -20);
+	this->finger3.model.local.setRot(0, 0, -10);
+	this->finger4.model.local.setRot(0, 0, 10);
+	this->finger5.model.local.setRot(0, 0, 20);
 
 	this->base.model.setColor(BASE_COLOR);
 	this->finger1.model.setColor(FINGER_COLOR);
@@ -54,9 +54,9 @@ void	Extremity::scale(float thickness) {
 }
 
 void	Extremity::position(float thickness) {
-	this->finger1.model.local.setPos(-this->finger1.model.local.getScale().x, 0, this->base.model.local.getScale().z/2);
-	this->finger2.model.local.setPos(0, 0, this->base.model.local.getScale().z);
-	this->finger3.model.local.setPos((this->finger1.model.local.getScale().x + SPACING * thickness) * 1, 0, this->base.model.local.getScale().z);
-	this->finger4.model.local.setPos((this->finger1.model.local.getScale().x + SPACING * thickness) * 2, 0, this->base.model.local.getScale().z);
-	this->finger5.model.local.setPos((this->finger1.model.local.getScale().x + SPACING * thickness) * 3, 0, this->base.model.local.getScale().z);
+	this->finger1.model.local.setPos(-this->finger1.model.local.getScale().x, -this->base.model.local.getScale().y/2, 0);
+	this->finger2.model.local.setPos(0, -this->base.model.local.getScale().y, 0);
+	this->finger3.model.local.setPos((this->finger1.model.local.getScale().x + SPACING * thickness) * 1, -this->base.model.local.getScale().y, 0);
+	this->finger4.model.local.setPos((this->finger1.model.local.getScale().x + SPACING * thickness) * 2, -this->base.model.local.getScale().y, 0);
+	this->finger5.model.local.setPos((this->finger1.model.local.getScale().x + SPACING * thickness) * 3, -this->base.model.local.getScale().y, 0);
 }

@@ -4,7 +4,9 @@
             "name": "Mac",
             "includePath": [
                 "${default}",
-                "${workspaceFolder}/**"
+                "${workspaceFolder}/**",
+                "${workspaceFolder}/include",
+                "${workspaceFolder}/SimpleGL/include"
             ],
             "defines": [],
             "macFrameworkPath": [

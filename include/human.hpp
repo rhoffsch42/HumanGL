@@ -45,6 +45,8 @@ public:
 	void			setHeadSize(float thickness);
 	void			setMembersSize(float thickness, float lenght);
 
+	float				getThickness() const;
+	float				getLenght() const;
 	std::list<Obj3d*>	getObjList() const;
 
 	BodyPart	_head;
@@ -58,13 +60,14 @@ public:
 	BodyPart	_leftCalf;
 	BodyPart	_rightCalf;
 
+	virtual void		scaleHuman();			//children need to update their parent's part too, be sure to call this one too when scaling a child
+	virtual void		positionMembers();		//children need to update their parent's part too, be sure to call this one too when scaling a child
+	virtual void		updateMembersAnchor();	//children need to update their parent's part too, be sure to call this one too when scaling a child
+
 protected:
 	float		_thickness;
 	float		_lenght;
 
 	std::list<Obj3d*>	_objList;
 
-	virtual void		scaleHuman();			//children need to update their parent's part too, be sure to call this one too when scaling a child
-	virtual void		positionMembers();		//children need to update their parent's part too, be sure to call this one too when scaling a child
-	virtual void		updateMembersAnchor();	//children need to update their parent's part too, be sure to call this one too when scaling a child
 };

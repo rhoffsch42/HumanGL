@@ -19,8 +19,8 @@ _rightHand(blueprint, program)
 	this->scaleHuman();//calls positionMembers() too
 
 	//rotations
-	this->_leftHand.local.setRot(90, 0, 0);
-	this->_rightHand.local.setRot(90, 0, 0);
+	this->_leftFoot.local.setRot(-90, 0, 0);
+	this->_rightFoot.local.setRot(-90, 0, 0);
 
 	this->addExtremityToList(this->_leftFoot);
 	this->addExtremityToList(this->_rightFoot);
@@ -52,13 +52,13 @@ void	HumanEvolved::positionMembers() {
 	this->_leftFoot.local.setPos(this->_leftCalf.model.local.getScale().x/2 - this->_leftFoot.base.model.local.getScale().x/2, \
 								-this->_leftCalf.model.local.getScale().y, \
 								this->_leftCalf.model.local.getScale().z/2);
-	this->_rightFoot.local.setPos(this->_leftCalf.model.local.getScale().x/2 - this->_rightFoot.base.model.local.getScale().x/2, \
+	this->_rightFoot.local.setPos(this->_rightCalf.model.local.getScale().x/2 - this->_rightFoot.base.model.local.getScale().x/2, \
 								-this->_rightCalf.model.local.getScale().y, \
 								this->_rightCalf.model.local.getScale().z/2);
-	this->_leftHand.local.setPos(this->_leftCalf.model.local.getScale().x/2 - this->_leftHand.base.model.local.getScale().x/2, \
+	this->_leftHand.local.setPos(this->_leftForearm.model.local.getScale().x/2 - this->_leftHand.base.model.local.getScale().x/2, \
 								-this->_leftForearm.model.local.getScale().y, \
 								this->_leftForearm.model.local.getScale().z/2);
-	this->_rightHand.local.setPos(this->_leftCalf.model.local.getScale().x/2 - this->_rightHand.base.model.local.getScale().x/2, \
+	this->_rightHand.local.setPos(this->_rightForearm.model.local.getScale().x/2 - this->_rightHand.base.model.local.getScale().x/2, \
 								-this->_rightForearm.model.local.getScale().y, \
 								this->_rightForearm.model.local.getScale().z/2);
 

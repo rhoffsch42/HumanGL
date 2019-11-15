@@ -133,6 +133,8 @@ void			Human::setMembersSize(float thickness, float lenght) {
 }
 
 std::list<Obj3d*>	Human::getObjList() const { return (this->_objList); }
+float				Human::getThickness() const { return this->_thickness; }
+float				Human::getLenght() const { return this->_lenght; }
 
 void			Human::scaleHuman() {
 	// std::cout << __PRETTY_FUNCTION__ << std::endl;
@@ -148,16 +150,15 @@ void			Human::positionMembers() {
 	// std::cout << __PRETTY_FUNCTION__ << std::endl;
 
 	// care, if you want to position a left member, its scale.x is negative! Use absolute value!
-	Math::Vector3 offsetMembre = Math::Vector3(0, -this->_leftArm.model.local.getScale().y, 0);
 	this->_head.local.setPos(this->_trunk.model.local.getScale().x/2 - this->_head.model.local.getScale().x/2, this->_head.model.local.getScale().y, 0);
 	this->_leftArm.local.setPos(0, 0, 0);
 	this->_rightArm.local.setPos(this->_trunk.model.local.getScale().x, 0, 0);
-	this->_leftForearm.local.setPos(offsetMembre);
-	this->_rightForearm.local.setPos(offsetMembre);
+	this->_leftForearm.local.setPos(Math::Vector3(0, -this->_leftArm.model.local.getScale().y, 0));
+	this->_rightForearm.local.setPos(Math::Vector3(0, -this->_rightArm.model.local.getScale().y, 0));
 	this->_leftThigh.local.setPos(abs(0 + this->_leftThigh.model.local.getScale().x), -this->_trunk.model.local.getScale().y, 0);
 	this->_rightThigh.local.setPos(this->_trunk.model.local.getScale().x - this->_rightThigh.model.local.getScale().x, -this->_trunk.model.local.getScale().y, 0);
-	this->_leftCalf.local.setPos(offsetMembre);
-	this->_rightCalf.local.setPos(offsetMembre);
+	this->_leftCalf.local.setPos(Math::Vector3(0, -this->_leftThigh.model.local.getScale().y, 0));
+	this->_rightCalf.local.setPos(Math::Vector3(0, -this->_rightThigh.model.local.getScale().y, 0));
 }
 
 void			Human::updateMembersAnchor() {
