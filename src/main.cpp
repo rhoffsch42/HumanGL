@@ -6,7 +6,7 @@
 /*   By: rhoffsch <rhoffsch@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/09/18 22:45:30 by rhoffsch          #+#    #+#             */
-/*   Updated: 2019/11/14 19:02:36 by rhoffsch         ###   ########.fr       */
+/*   Updated: 2019/11/15 11:16:52 by rhoffsch         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,31 +24,6 @@
 #else
 #include <unistd.h>
 #endif
-
-
-void	_intToRGB(unsigned int value, uint8_t * dst) {
-	unsigned char * p = reinterpret_cast<unsigned char *>(&value);
-	dst[0] = p[0];
-	dst[1] = p[1];
-	dst[2] = p[2];
-}
-void	_RGBToInt(uint8_t * rgb, unsigned int * dst) {
-	*dst = 0;
-	unsigned char * p = reinterpret_cast<unsigned char *>(dst);
-	p[0] = rgb[0];
-	p[1] = rgb[1];
-	p[2] = rgb[2];
-}
-void	_test_conv() {
-	unsigned int id = 95642;
-	uint8_t rgb[3];
-	_intToRGB(id, &(rgb[0]));
-	std::cout << (int)rgb[0] << ", " << (int)rgb[1] << ", " << (int)rgb[2] << std::endl;
-	unsigned int ret;
-	_RGBToInt(&(rgb[0]), &ret);
-	std::cout << ret << " == " << id << std::endl;
-	exit(0);
-}
 
 class FrameBuffer {
 	/*
@@ -165,59 +140,57 @@ public:
 private:
 };
 
-class GameManager {
-public:
-	GameManager() {}
-	~GameManager() {}
-	Glfw *			glfw;
-	Object *		currentSelection;
-	list<Object*> *	objectList;
-	Cam *			cam;
-private:
-};
 class HumanManager : public GameManager {
 public:
-	list<Obj3d*>	obj3dList;
+	HumanManager() : GameManager() {
+		this->obj3dList = nullptr;
+		this->human = nullptr;
+		this->framebuffer = nullptr;
+	}
+	~HumanManager() {
+	}
+	list<Obj3d*> *	obj3dList;
 	Human *			human;
-	FrameBuffer *	fb;
+	FrameBuffer *	framebuffer;
 private:
 };
 
 void	getObjectOnClic(int x, int y, HumanManager * manager) {
+	if (!manager->human || !manager->glfw || !manager->cam || !manager->framebuffer) {
+		std::cout << __PRETTY_FUNCTION__ << " : Error : one of several HumanManager pointer is null." << std::endl;
+		return ;
+	}
 	list<Obj3d*>	obj3dList = manager->human->getObjList();//should return full list depending on Human type
 	std::cout << "searching from " << obj3dList.size() << " obj3d" << std::endl;
 	y = manager->glfw->getHeight() - y;
 	std::cout << "pos: " << x << " - " << y << std::endl;
 	GLubyte data[4];//RGBA
 
-	if (1) {
-		glBindFramebuffer(GL_FRAMEBUFFER, manager->fb->fbo_id);
+	//render in the offscreen framebuffer
+	glBindFramebuffer(GL_FRAMEBUFFER, manager->framebuffer->fbo_id);
+	glClearColor(1, 1, 1, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		Obj3d*		obj = *(obj3dList.begin());
-		Obj3dPG&	pg = obj->getProgram();
-		glUseProgram(pg._program);//used once for all obj3d
-		Math::Matrix4	proMatrix(manager->cam->getProjectionMatrix());
-		Math::Matrix4	viewMatrix = manager->cam->getViewMatrix();
-		proMatrix.mult(viewMatrix);// do it in shader ? NO cauz shader will do it for every vertix
-		for (Obj3d* object : obj3dList)
-			// object->render (proMatrix);
-			pg.renderUniqueColor(*object, proMatrix);
-		// for (Obj3d* object : obj3dList) { // this has to be done after all objects are rendered!
-		// 	object->local._matrixChanged = false; nope, not here
-		// 	object->_worldMatrixChanged = false; nope, not here
-		// }
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	}
-	
+	Obj3d*		obj = *(obj3dList.begin());
+	Obj3dPG&	pg = obj->getProgram();
+	glUseProgram(pg._program);//used once for all obj3d
+	Math::Matrix4	proMatrix(manager->cam->getProjectionMatrix());
+	Math::Matrix4	viewMatrix = manager->cam->getViewMatrix();
+	proMatrix.mult(viewMatrix);// do it in shader ? NO cauz shader will do it for every vertix
+	for (Obj3d* object : obj3dList)
+		pg.renderUniqueId(*object, proMatrix);
 
+	//read the pixel on x y, get the ID
 	glReadPixels(x,	y, 1, 1, GL_RGB, GL_UNSIGNED_BYTE, &data);
 	unsigned int id = 0;
-	_RGBToInt(&(*data), &id);
+	Misc::RGBToInt(&(*data), &id);
 	std::cout << "id is " << id << " (" << (int)data[0] << ", " << (int)data[1] << ", " << (int)data[2] << ")" << std::endl;
 	for (auto it : obj3dList) {
 		if (it->getId() == id)
 			std::cout << "Found!" << std::endl;
 	}
+	//restore window-system-provided framebuffer
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void		HumanMouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
@@ -243,31 +216,6 @@ void		HumanMouseButtonCallback(GLFWwindow* window, int button, int action, int m
 		}
 	}
 }
-static void		HumanKeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
-	// std::cout << __PRETTY_FUNCTION__ << std::endl;
-	if (false) {
-		std::cout << "keys: " << key << std::endl;
-		std::cout << "scancode: " << scancode << std::endl;
-		std::cout << "action: " << action << std::endl;
-		std::cout << "mods: " << mods << std::endl;
-	}
-	(void)window;(void)key;(void)scancode;(void)action;(void)mods;
-
-	HumanManager * manager = static_cast<HumanManager*>(glfwGetWindowUserPointer(window));//dynamic_cast cannot work, as void* lose polymorphisme metadata
-	if (manager->glfw->func[key])
-		(manager->glfw->func[key])(window, key, scancode, action, mods);
-}
-
-void		HumanKeyCallback_tab(GLFWwindow* window, int key, int scancode, int action, int mods) {
-	(void)window;(void)key;(void)scancode;(void)action;(void)mods;
-	std::cout << __PRETTY_FUNCTION__ << std::endl;
-
-	if (action == GLFW_PRESS) {
-		std::cout << "tab press" << std::endl;
-		HumanManager * manager = static_cast<HumanManager*>(glfwGetWindowUserPointer(window));//dynamic_cast cannot work, as void* lose polymorphisme metadata
-		manager->glfw->toggleCursor();
-	}
-}
 
 
 void	printPixelRGB(int x, int y, GLenum format, string prefix) {
@@ -277,8 +225,6 @@ void	printPixelRGB(int x, int y, GLenum format, string prefix) {
 						<< (unsigned int)data[1] << ", " \
 						<< (unsigned int)data[2] << ")" << std::endl;
 }
-
-
 
 void	renderObj3d(list<Obj3d*>	obj3dList, Cam& cam) {
 	// cout << "render all Obj3d" << endl;
@@ -315,12 +261,6 @@ void sceneHumanGL() {
 	std::string sgl_dir = "SimpleGL/";
 	Glfw		glfw(WINX, WINY); // screen size
 	glDisable(GL_CULL_FACE);
-
-	glfwSetMouseButtonCallback(glfw._window, HumanMouseButtonCallback);//override default callback
-	glfwSetKeyCallback(glfw._window, HumanKeyCallback);
-	//glfw key map
-	glfw.func[GLFW_KEY_TAB] = HumanKeyCallback_tab;
-
 
 	Obj3dPG		obj3d_prog(std::string(sgl_dir + OBJ3D_VS_FILE), std::string(sgl_dir + OBJ3D_FS_FILE));
 	SkyboxPG	sky_pg(std::string(sgl_dir + CUBEMAP_VS_FILE), std::string(sgl_dir + CUBEMAP_FS_FILE));
@@ -559,7 +499,7 @@ glfw.setMouseAngle(-1);
 			std::cout << "fb: " << fb->fbo_id << std::endl;
 			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fb->fbo_id);
 			// glClearColor(0.5f/(i+1), 0.5f/(i+1), 0.5f/(i+1), 1.0f);//= RGB(25, 51, 102);	//to do before glClear()
-			glClearColor(0, 0, 0, 1.0f);//= RGB(25, 51, 102);	//to do before glClear()
+			glClearColor(1, 1, 1, 1.0f);//= RGB(25, 51, 102);	//to do before glClear()
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 			glBindFramebuffer(GL_READ_FRAMEBUFFER, fb->fbo_id);
@@ -607,12 +547,11 @@ glfw.setMouseAngle(-1);
 	HumanManager	gameManager;
 	gameManager.glfw = &glfw;
 	gameManager.human = bob;
-	#ifndef FRAMEBUFFER
-	gameManager.fb = &fb1;
-	#endif
+	gameManager.framebuffer = &fb1;
 	gameManager.cam = &cam;
 
-	glfwSetWindowUserPointer(gameManager.glfw->_window, &gameManager);
+	glfw.activateDefaultCallbacks(&gameManager);
+	glfwSetMouseButtonCallback(glfw._window, HumanMouseButtonCallback);//override default callback
 
 
 	// GLFWwindow *	fullWin = glfwCreateWindow(WINX, WINY, "My Title", glfwGetPrimaryMonitor(), NULL);//fullscreen
@@ -670,16 +609,14 @@ glfw.setMouseAngle(-1);
 			renderObj3d(obj3dList, cam);
 			renderSkybox(skybox, cam);
 
-			#ifndef FRAMEBUFFER
-				if (true) {//override window-system-provided framebuffer
-					glBindFramebuffer(GL_READ_FRAMEBUFFER, fb1.fbo_id);
-					glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-					glBlitFramebuffer(0, 0, WINX, WINY, 0, 0, WINX, WINY, GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT, GL_NEAREST);
-					glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
-					glBindFramebuffer(GL_FRAMEBUFFER, 0);
-				}
-			#endif
-			
+			if (false) {//override window-system-provided framebuffer
+				glBindFramebuffer(GL_READ_FRAMEBUFFER, fb1.fbo_id);
+				glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+				glBlitFramebuffer(0, 0, WINX, WINY, 0, 0, WINX, WINY, GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT, GL_NEAREST);
+				glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+				glBindFramebuffer(GL_FRAMEBUFFER, 0);
+			}
+		
 			glfwSwapBuffers(glfw._window);
 			if (GLFW_PRESS == glfwGetKey(glfw._window, GLFW_KEY_ESCAPE))
 				glfwSetWindowShouldClose(glfw._window, GLFW_TRUE);
@@ -687,6 +624,26 @@ glfw.setMouseAngle(-1);
 	}
 #endif // RENDER
 }
+
+#ifdef OFFSETCLASS
+	void	offsetClass() {
+		//remove CFLAGS before compiling
+		std::cout << offsetof(GameManager, glfw) << std::endl;
+		std::cout << offsetof(GameManager, currentSelection) << std::endl;
+		std::cout << offsetof(GameManager, objectList) << std::endl;
+		std::cout << offsetof(GameManager, cam) << std::endl;
+
+		std::cout << offsetof(HumanManager, glfw) << std::endl;
+		std::cout << offsetof(HumanManager, currentSelection) << std::endl;
+		std::cout << offsetof(HumanManager, objectList) << std::endl;
+		std::cout << offsetof(HumanManager, cam) << std::endl;
+		std::cout << offsetof(HumanManager, obj3dList) << std::endl;
+		std::cout << offsetof(HumanManager, human) << std::endl;
+		std::cout << offsetof(HumanManager, fb) << std::endl;
+
+		exit(0);
+	}
+#endif
 
 int		main(void) {
 	std::cout << "____START____" << endl;
