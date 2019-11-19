@@ -1,0 +1,29 @@
+{
+	"frame1":{
+		"head":[0.0,0.0,0.0],
+		"leftArm":[49.5,0.0,0.0],
+		"leftCalf":[60.0,0.0,0.0],
+		"leftForearm":[-78.5,0.0,0.0],
+		"leftThigh":[-35.5,0.0,0.0],
+		"rightArm":[-5.5,0.0,0.0],
+		"rightCalf":[42.0,0.0,0.0],
+		"rightForearm":[-83.0,0.0,0.0],
+		"rightThigh":[26.0,0.0,0.0],
+		"time":0.5,
+		"trunk":[0.0,0.0,0.0]
+	},
+	"frame2":{
+		"head":[0.0,0.0,0.0],
+		"leftArm":[-5.5,0.0,0.0],
+		"leftCalf":[42.0,0.0,0.0],
+		"leftForearm":[-83.0,0.0,0.0],
+		"leftThigh":[26.0,0.0,0.0],
+		"rightArm":[49.5,0.0,0.0],
+		"rightCalf":[60.0,0.0,0.0],
+		"rightForearm":[-78.5,0.0,0.0],
+		"rightThigh":[-35.5,0.0,0.0],
+		"time":0.5,
+		"trunk":[0.0,0.0,0.0]
+	},
+	"loop":-1
+}

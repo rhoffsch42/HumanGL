@@ -1,4 +1,6 @@
 #include "human.hpp"
+#include <json/json.hpp>
+using json = nlohmann::json;
 
 #define Z_THICKNESS		1.0f
 #define SIZE_HEAD		1.5f
@@ -99,6 +101,44 @@ void			Human::setThickness(float thickness) {
 	}
 	this->scaleHuman();
 }
+
+std::string		Human::getKeyFrame() const {
+	std::stringstream ss;
+	Math::Rotation r[10];
+
+	r[0] = this->_head.local.getRot();
+	r[1] = this->_trunk.local.getRot();
+	r[2] = this->_leftArm.local.getRot();
+	r[3] = this->_leftForearm.local.getRot();
+	r[4] = this->_rightArm.local.getRot();
+	r[5] = this->_rightForearm.local.getRot();
+	r[6] = this->_leftThigh.local.getRot();
+	r[7] = this->_leftCalf.local.getRot();
+	r[8] = this->_rightThigh.local.getRot();
+	r[9] = this->_rightCalf.local.getRot();
+
+	json human =
+	{
+		{"frame",
+			{
+				{"head",		{r[0].x, r[0].y, r[0].z}},
+				{"trunk",		{r[1].x, r[1].y, r[1].z}},
+				{"leftArm",		{r[2].x, r[2].y, r[2].z}},
+				{"leftForearm",	{r[3].x, r[3].y, r[3].z}},
+				{"rightArm",	{r[4].x, r[4].y, r[4].z}},
+				{"rightForearm",{r[5].x, r[5].y, r[5].z}},
+				{"leftThigh",	{r[6].x, r[6].y, r[6].z}},
+				{"leftCalf",	{r[7].x, r[7].y, r[7].z}},
+				{"rightThigh",	{r[8].x, r[8].y, r[8].z}},
+				{"rightCalf",	{r[9].x, r[9].y, r[9].z}},
+				{"time", 0.5}
+			}
+		}
+	};
+	ss << human << std::endl;
+	return ss.str();
+}
+
 
 void			Human::setLenght(float lenght) {
 	if (lenght >= MIN_LENGHT) {

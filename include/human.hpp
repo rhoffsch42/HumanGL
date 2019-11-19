@@ -38,6 +38,8 @@ public:
 					// Human(const Human & src);//FIX see .cpp
 	virtual Human &	operator=(const Human & src);
 	virtual			~Human();
+	std::string		getKeyFrame() const;
+
 
 	void			setThickness(float thickness);	// override all scales
 	void			setLenght(float lenght);		// override all scales

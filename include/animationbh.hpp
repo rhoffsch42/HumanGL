@@ -1,7 +1,5 @@
 #pragma once
 
-#include "humangl.h"
-
 /*
 	Dans Behavior:
 		la liste de pair<BehaviorManaged, bool>
@@ -36,10 +34,47 @@
 
 //pour HumanGL on ne fera qu'une seule target, et on changera le TransformBH selon la step!
 //Il devra être capable de marcher, sauter et se tenir immobile.
-class AnimationBH : public TransformBH
+
+#include "behavior.hpp"
+#include "misc.hpp"
+#include <json/json.hpp>
+using json = nlohmann::json;
+
+#include <sstream>
+#include <string>
+
+/*
+	As this Behavior store data depending on the target state, it will act the same way on all its targets
+	recreate a new instance to operate on targets independently
+	bool Behavior::isPersistant = true;
+
+	-> create and dedicate a persistant data struct for each target on the list
+*/
+
+class AnimationBH : public Behavior
 {
 public:
+	AnimationBH(const std::string & filename);
+	~AnimationBH();
+
+	void		behaveOnTarget(BehaviorManaged *target);
+	bool		isCompatible(BehaviorManaged *target) const;
+
+	void		setFpsTick(float tick);
+	std::string	getFilename() const;
+
+	json			jsonData;
+	int				loop;//n = n loops, -1 = infinite loops //persistant
+	int				currentLoop;//persistant
+	bool			finished;//persistant
 private:
-	bool	_loop;
-	float	_fpsTick;
+	float			_fpsTick;
+	std::string		_filename;
+	unsigned int	_frameMax;
+
+	unsigned int	_currentFrame;//persistant
+	std::string		_frame;//persistant
+	unsigned int	_stepMax;//persistant
+	unsigned int	_step;//persistant
+	float			_speed;//persistant
 };

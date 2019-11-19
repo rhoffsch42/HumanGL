@@ -6,7 +6,7 @@
 /*   By: rhoffsch <rhoffsch@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/09/18 22:45:30 by rhoffsch          #+#    #+#             */
-/*   Updated: 2019/11/15 18:33:14 by rhoffsch         ###   ########.fr       */
+/*   Updated: 2019/11/19 09:02:32 by rhoffsch         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,7 @@
 #include "humanevolved.hpp"
 #include "supersaiyan1.hpp"
 #include "framebuffer.hpp"
+#include "animationbh.hpp"
 
 #include <string>
 #include <cstdio>
@@ -25,6 +26,9 @@
 #else
 #include <unistd.h>
 #endif
+
+#include <json/json.hpp>
+using json = nlohmann::json;
 
 class HumanManager : public GameManager {
 public:
@@ -115,6 +119,17 @@ void	HumanMouseButtonCallback(GLFWwindow* window, int button, int action, int mo
 	}
 }
 
+void	printHumanKeyFrame(GLFWwindow* window, int key, int scancode, int action, int mods) {
+	(void)window;(void)key;(void)scancode;(void)action;(void)mods;
+	if (action == GLFW_PRESS) {
+		HumanManager * hmanager = static_cast<HumanManager*>(glfwGetWindowUserPointer(window));//dynamic_cast cannot work, as void* lose polymorphisme metadata
+		if (!hmanager) {
+			std::cout << "Error: Wrong pointer type, HumanManager * expected" << std::endl;
+			return ;
+		}
+		std::cout << hmanager->human->getKeyFrame();
+	}
+}
 
 void	printPixelRGB(int x, int y, GLenum format, string prefix) {
 	GLubyte data[4];//RGBA
@@ -269,8 +284,14 @@ void sceneHumanGL() {
 		bob->_rightThigh.rotateMember(Math::Rotation(x, 0, z));
 	}
 
+	AnimationBH		running("animations/human_run.anim");
+	running.loop = 0;
+	running.setFpsTick(defaultFps->getTick());
+	running.addTarget(bob);
+	std::cout << running.targetList.size() << std::endl;
+
 #endif // BEHAVIORS
-	Behavior::areActive = false;
+	// Behavior::areActive = false;
 	// b0_rot.isActive = false;
 	// b1_rot.isActive = false;
 	// b2_rot.isActive = false;
@@ -398,6 +419,7 @@ glfw.setMouseAngle(-1);
 
 	glfw.activateDefaultCallbacks(&gameManager);
 	glfwSetMouseButtonCallback(glfw._window, HumanMouseButtonCallback);//override default callback
+	glfw.func[GLFW_KEY_ENTER] = printHumanKeyFrame;
 	// glfwSetWindowMonitor(glfw._window, NULL, 100, 100, WINX, WINY, 0);
 
 #endif
@@ -409,13 +431,23 @@ glfw.setMouseAngle(-1);
 	double t = glfwGetTime();
 	// glfwSwapInterval(1);
 
+	if (gameManager.currentSelection)
+		std::cout << "Current selection not null: " << gameManager.currentSelection << std::endl;
+	else
+		std::cout << "Current selection null" << std::endl;
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+
 	while (!glfwWindowShouldClose(glfw._window)) {
+// std::cout << ".";
 		if (defaultFps->wait_for_next_frame()) {
 			// Fps::printGlobalFps();
 
-			b0_rot.run();
-			b1_rot.run();
-			b2_rot.run();
+			// b0_rot.run();
+			// b1_rot.run();
+			// b2_rot.run();
+			running.run();
 			#ifdef MANYCUBES
 			b5.run();
 			#endif
@@ -440,20 +472,6 @@ glfw.setMouseAngle(-1);
 
 			// getObjectOnClic(0,0, &gameManager);
 
-			glfwPollEvents();
-			glfw.updateMouse(); // to do before cam's events
-			cam.events(glfw, float(defaultFps->getTick()));
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-			renderObj3d(obj3dList, cam);
-			renderSkybox(skybox, cam);
-
-			if (1) {//copy FB on window-system-provided framebuffer
-				glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer.fbo);
-				glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-				glBlitFramebuffer(0, 0, WINX, WINY, 0, 0, WINX/4, WINY/4, GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT, GL_NEAREST);
-				glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
-				glBindFramebuffer(GL_FRAMEBUFFER, 0);
-			}
 
 			if (gameManager.currentSelection && GLFW_PRESS == glfwGetKey(glfw._window, GLFW_KEY_P)) {
 				gameManager.currentSelection->local.enlarge(0, 1 * defaultFps->getTick(), 0);
@@ -467,6 +485,44 @@ glfw.setMouseAngle(-1);
 				
 				gameManager.human->positionMembers();
 				gameManager.human->updateMembersAnchor();
+			}
+			if (gameManager.currentSelection) {
+				float v = 30.0f * defaultFps->getTick();
+				Math::Rotation rx(v, 0, 0);
+				Math::Rotation ry(0, v, 0);
+				Math::Rotation rz(0, 0, v);
+				Math::Rotation rxm(-v, 0, 0);
+				Math::Rotation rym(0, -v, 0);
+				Math::Rotation rzm(0, 0, -v);
+				if (GLFW_PRESS == glfwGetKey(glfw._window, GLFW_KEY_BACKSPACE))
+					gameManager.currentSelection->getParent()->local.setRot(0,0,0);
+				if (GLFW_PRESS == glfwGetKey(glfw._window, GLFW_KEY_KP_4))
+					gameManager.currentSelection->getParent()->local.rotate(rx);
+				if (GLFW_PRESS == glfwGetKey(glfw._window, GLFW_KEY_KP_1))
+					gameManager.currentSelection->getParent()->local.rotate(rxm);
+				if (GLFW_PRESS == glfwGetKey(glfw._window, GLFW_KEY_KP_5))
+					gameManager.currentSelection->getParent()->local.rotate(ry);
+				if (GLFW_PRESS == glfwGetKey(glfw._window, GLFW_KEY_KP_2))
+					gameManager.currentSelection->getParent()->local.rotate(rym);
+				if (GLFW_PRESS == glfwGetKey(glfw._window, GLFW_KEY_KP_6))
+					gameManager.currentSelection->getParent()->local.rotate(rz);
+				if (GLFW_PRESS == glfwGetKey(glfw._window, GLFW_KEY_KP_3))
+					gameManager.currentSelection->getParent()->local.rotate(rzm);
+			}
+
+			glfwPollEvents();
+			glfw.updateMouse(); // to do before cam's events
+			cam.events(glfw, float(defaultFps->getTick()));
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			renderObj3d(obj3dList, cam);
+			renderSkybox(skybox, cam);
+
+			if (1) {//copy FB on window-system-provided framebuffer
+				glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer.fbo);
+				glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+				glBlitFramebuffer(0, 0, WINX, WINY, 0, 0, WINX/4, WINY/4, GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT, GL_NEAREST);
+				glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+				glBindFramebuffer(GL_FRAMEBUFFER, 0);
 			}
 
 			glfwSwapBuffers(glfw._window);
@@ -498,7 +554,103 @@ glfw.setMouseAngle(-1);
 	}
 #endif
 
+void	testJson() {
+
+	if (1) {
+		std::string filecontent = Misc::getFileContent("animations/human_run.anim");
+		std::stringstream ss;
+		ss << filecontent;
+		json j;
+		ss >> j;
+		std::cout << j << std::endl;
+		std::cout << "size: " << j.size() << std::endl;
+		std::cout << j["loop"] << std::endl;
+	}
+
+	if (0) {
+		std::string s1 = R"(
+			{"frame1":{
+				"head":[0.0,0.0,0.0],
+				"leftArm":[49.5,0.0,0.0],
+				"leftCalf":[60.0,0.0,0.0],
+				"leftForearm":[-78.5,0.0,0.0],
+				"leftThigh":[-35.5,0.0,0.0],
+				"rightArm":[-5.5,0.0,0.0],
+				"rightCalf":[42.0,0.0,0.0],
+				"rightForearm":[-83.0,0.0,0.0],
+				"rightThigh":[26.0,0.0,0.0],
+				"time":0.5,
+				"trunk":[0.0,0.0,0.0]
+			},
+			"frame2":{
+				"head":[0.0,0.0,0.0],
+				"leftArm":[-5.5,0.0,0.0],
+				"leftCalf":[42.0,0.0,0.0],
+				"leftForearm":[-83.0,0.0,0.0],
+				"leftThigh":[26.0,0.0,0.0],
+				"rightArm":[49.5,0.0,0.0],
+				"rightCalf":[60.0,0.0,0.0],
+				"rightForearm":[-78.5,0.0,0.0],
+				"rightThigh":[-35.5,0.0,0.0],
+				"time":0.5,
+				"trunk":[0.0,0.0,0.0]
+			},
+			"loop":-1}
+		)";
+
+		std::stringstream ss;
+		json res;
+		ss << s1;
+		ss >> res;
+		std::cout << res << std::endl;
+		std::cout << "s: " << res.size() << std::endl << std::endl;
+	}
+	
+	if (0) {
+		json human =
+		{
+			{"frame1",{
+				{"member1", {1,2,3}},
+				{"member2", {1,2,3}},
+				{"member3", {1,2,3}},
+				{"member4", {1,2,3}},
+				{"member5", {1,2,3}},
+				{"time", 0.5}
+			}},
+			{"frame2",{
+				{"member1", {1,2,3}},
+				{"member2", {1,2,3}},
+				{"member3", {1,2,3}},
+				{"member4", {1,2,3}},
+				{"member5", {1,2,3}},
+				{"time", 0.5},
+			}}
+		};
+
+		std::cout << "hs:" << human.size() << std::endl;
+		std::cout << human["frame1"]["member1"][0] << std::endl;
+		std::cout << human["frame1"]["member1"][1] << std::endl;
+		std::cout << human["frame1"]["member1"][2] << std::endl;
+
+		std::cout << human["frame2"]["member3"][0] << std::endl;
+		std::cout << human["frame2"]["member3"][1] << std::endl;
+		std::cout << human["frame2"]["member3"][2] << std::endl;
+
+		std::stringstream ss;
+		ss << human;
+		std::string str = ss.str();
+
+		json human2;
+		ss >> human2;
+
+		std::cout << human2;
+	}
+
+	exit(0);
+}
+
 int		main(void) {
+	// testJson();
 	std::cout << "____START____" << endl;
 	sceneHumanGL();
 	return (EXIT_SUCCESS);

@@ -6,7 +6,7 @@
 #    By: rhoffsch <rhoffsch@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/05/15 17:38:19 by rhoffsch          #+#    #+#              #
-#    Updated: 2019/11/15 17:39:37 by rhoffsch         ###   ########.fr        #
+#    Updated: 2019/11/19 06:23:42 by rhoffsch         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -34,7 +34,8 @@ SRC_FILE		=	main.cpp \
 					humanevolved.cpp \
 					extremity.cpp \
 					supersaiyan1.cpp \
-					framebuffer.cpp
+					framebuffer.cpp \
+					animationbh.cpp
 
 HDR_FILE		=	humangl.h
 
