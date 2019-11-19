@@ -1,7 +1,7 @@
 
 HUMANGL:
 - [X] refacto system de scale, utiliser directement les containers et le system de parenté, cest fait pour ça!
-
+- [ ] bug random si on change le obj3d bp
 MISC:
 - [ ] make a logfile manager
 

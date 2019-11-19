@@ -6,7 +6,7 @@
 /*   By: rhoffsch <rhoffsch@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/09/18 22:45:30 by rhoffsch          #+#    #+#             */
-/*   Updated: 2019/11/19 09:02:32 by rhoffsch         ###   ########.fr       */
+/*   Updated: 2019/11/19 11:36:04 by rhoffsch         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -284,9 +284,10 @@ void sceneHumanGL() {
 		bob->_rightThigh.rotateMember(Math::Rotation(x, 0, z));
 	}
 
-	AnimationBH		running("animations/human_run.anim");
-	running.loop = 0;
+	AnimationHumanBH		running("animations/human_run.anim");
+	running.loop = -1;
 	running.setFpsTick(defaultFps->getTick());
+	running.setSpeed(2);
 	running.addTarget(bob);
 	std::cout << running.targetList.size() << std::endl;
 
