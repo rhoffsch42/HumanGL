@@ -6,7 +6,7 @@
 /*   By: rhoffsch <rhoffsch@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/09/18 22:45:30 by rhoffsch          #+#    #+#             */
-/*   Updated: 2019/11/19 11:36:04 by rhoffsch         ###   ########.fr       */
+/*   Updated: 2019/11/20 17:00:32 by rhoffsch         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,6 +30,31 @@
 #include <json/json.hpp>
 using json = nlohmann::json;
 
+class UIPanel {
+public:
+	UIPanel() {
+		this->texture = nullptr;
+		this->posX = 0;
+		this->posY = 0;
+		this->width = 100;
+		this->height = 100;
+	}
+	UIPanel(Texture * tex) {
+		this->texture = tex;
+		this->posX = 0;
+		this->posY = 0;
+		this->width = tex->getWidth();
+		this->height = tex->getHeight();
+	}
+	~UIPanel() {}
+	Texture *	texture;
+	int			posX;
+	int			posY;
+	int			width;
+	int 		height;
+private:
+};
+
 class HumanManager : public GameManager {
 public:
 	HumanManager() : GameManager() {
@@ -42,19 +67,52 @@ public:
 	list<Obj3d*> *	obj3dList;
 	Human *			human;
 	FrameBuffer *	framebuffer;
+	FrameBuffer *	framebufferUI;
+	FrameBuffer *	framebufferUI2;
+	UIPanel *		uiPalette;
+	UIPanel *		uiLength;
+	UIPanel *		uiSelect;
 private:
 };
 
-void	getObjectOnClic(int x, int y, HumanManager * manager, bool resetMatrixChecks = false) {
+static void blitToWindow(HumanManager * manager, FrameBuffer * readFramebuffer, GLenum attachmentPoint, UIPanel *panel) {
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, readFramebuffer->fbo);
+
+	(void)manager;
+	//glViewport(0, 0, manager->glfw->getWidth(), manager->glfw->getHeight());//size of the window/image or panel width ?
+	glReadBuffer(attachmentPoint);
+	GLenum drawBuffers[1] = {GL_COLOR_ATTACHMENT0};
+	glDrawBuffers(1, drawBuffers);
+
+	int w;
+	int h;
+	if (panel->texture) {
+		w = panel->texture->getWidth();
+		h = panel->texture->getHeight();
+	} else {
+		w = readFramebuffer->getWidth();
+		h = readFramebuffer->getHeight();
+	}
+	std::cout << w << "x" << h << " to " << panel->width << "x" << panel->height \
+		<< " at " << panel->posX << "x" << panel->posY \
+		<< " -> " << (panel->posX + panel->width) << "x" << (panel->posY + panel->height) << std::endl;
+	glBlitFramebuffer(0, 0, w, h, \
+		panel->posX, panel->posY, panel->posX + panel->width, panel->posY + panel->height, \
+		GL_COLOR_BUFFER_BIT, GL_NEAREST);
+
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+}
+
+
+static void	getObjectOnClic(int glX, int glY, HumanManager * manager, bool resetMatrixChecks = false) {
 	if (!manager->human || !manager->glfw || !manager->cam || !manager->framebuffer) {
 		std::cout << __PRETTY_FUNCTION__ << " : Error : one of several HumanManager pointer is null." << std::endl;
 		return ;
 	}
 	// list<Obj3d*>	obj3dList = manager->human->getObjList();//should return full list depending on Human type
 	list<Obj3d*> 	obj3dList = *(manager->obj3dList);
-	y = manager->glfw->getHeight() - y;
-
-	GLubyte data[4];//RGBA
 
 	//render in the offscreen framebuffer
 	glBindFramebuffer(GL_FRAMEBUFFER, manager->framebuffer->fbo);
@@ -79,12 +137,13 @@ void	getObjectOnClic(int x, int y, HumanManager * manager, bool resetMatrixCheck
 
 
 	//read the pixel on x y, get the ID
-	glReadPixels(x,	y, 1, 1, GL_RGB, GL_UNSIGNED_BYTE, &data);
+	GLubyte data[4];//RGBA
+	glReadPixels(glX, glY, 1, 1, GL_RGB, GL_UNSIGNED_BYTE, &data);
 	unsigned int id = 0;
 	Misc::RGBToInt(&(*data), &id);
 	for (auto it : obj3dList) {
 		if (it->getId() == id) {
-			std::cout << "pos: " << x << " - " << y << std::endl;
+			std::cout << "pos: " << glX << " - " << glY << std::endl;
 			std::cout << "id is " << id << " (" << (int)data[0] << ", " << (int)data[1] << ", " << (int)data[2] << ")" << std::endl;
 			std::cout << "searching from " << obj3dList.size() << " obj3d" << std::endl;
 			std::cout << "Found!" << std::endl;
@@ -95,16 +154,50 @@ void	getObjectOnClic(int x, int y, HumanManager * manager, bool resetMatrixCheck
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
+static void	setMemberColor(int glX, int glY, HumanManager * manager) {
+	std::cout << __PRETTY_FUNCTION__ << std::endl;
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	GLubyte data[4];//RGBA
+	glReadPixels(glX, glY, 1, 1, GL_RGB, GL_UNSIGNED_BYTE, &data);
+	if (manager->currentSelection) {
+		Obj3d *		o = dynamic_cast<Obj3d*>(manager->currentSelection);
+		if (!o) { std::cout << __PRETTY_FUNCTION__ << " : Error : dymanic_cast failed" << std::endl; exit(2); }
+		std::cout << "color: " << (int)data[0] << " " << (int)data[1] << " " << (int)data[2] << std::endl;
+		o->setColor(data[0], data[1], data[2]);
+	}
+	
+}
+static void	setMemberLenght(int glX, int glY, HumanManager * manager) {// opengl system!
+	std::cout << __PRETTY_FUNCTION__ << std::endl;
+	(void)glX;
+	(void)glY;
+	(void)manager;
+}
+
+static bool	isOnUIPanel(int glX, int glY, UIPanel * panel) {// opengl system!
+	std::cout << __PRETTY_FUNCTION__ << std::endl;
+	if (!panel)
+		return false;
+	int x0 = panel->posX;
+	int y0 = panel->posY;
+	int x1 = panel->posX + panel->width;
+	int y1 = panel->posY + panel->height;
+
+	std::cout << "glX: " << glX << std::endl;
+	std::cout << "glY: " << glY << std::endl;
+	return (glX >= x0 && glX <= x1 && glY >= y0 && glY <= y1);
+}
+
 void	HumanMouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
 	(void)window;(void)button;(void)action;(void)mods;
 	// std::cout << __PRETTY_FUNCTION__ << std::endl;
 	if (action == GLFW_PRESS) {
-		HumanManager * hmanager = static_cast<HumanManager*>(glfwGetWindowUserPointer(window));//dynamic_cast cannot work, as void* lose polymorphisme metadata
-		if (!hmanager) {
+		HumanManager * manager = static_cast<HumanManager*>(glfwGetWindowUserPointer(window));//dynamic_cast cannot work, as void* lose polymorphisme metadata
+		if (!manager) {
 			std::cout << "Error: Wrong pointer type, HumanManager * expected" << std::endl;
 			return ;
 		}
-		if (hmanager->glfw->cursorFree == true) {
+		if (manager->glfw->cursorFree == true) {
 			double x, y;
 			glfwGetCursorPos(window, &x, &y);
 			std::cout << x << " : " << y;
@@ -112,7 +205,15 @@ void	HumanMouseButtonCallback(GLFWwindow* window, int button, int action, int mo
 				std::cout << "\tright button" << std::endl;
 			else if (button == GLFW_MOUSE_BUTTON_LEFT)
 				std::cout << "\tleft button" << std::endl;
-			getObjectOnClic(x, y, hmanager);
+
+			y = manager->glfw->getHeight() - y;// coordinate system: convert glfw to opengl
+			if (isOnUIPanel(x, y, manager->uiPalette)) {
+				setMemberColor(x, y, manager);
+			} else if (isOnUIPanel(x, y, manager->uiLength)) {
+				setMemberLenght(x, y, manager);
+			} else {
+				getObjectOnClic(x, y, manager);
+			}
 		} else {
 			std::cout << "not cursorFree ?!" << std::endl;
 		}
@@ -169,11 +270,15 @@ void	renderSkybox(Skybox& skybox, Cam& cam) {
 }
 
 void sceneHumanGL() {
+#ifndef INITS
 	int		WINX = 1600;
 	int		WINY = 900;
 	std::string sgl_dir = "SimpleGL/";
 	Glfw		glfw(WINX, WINY); // screen size
 	glDisable(GL_CULL_FACE);
+
+	GLint maxAttach = 0;
+	glGetIntegerv(GL_MAX_COLOR_ATTACHMENTS, &maxAttach);
 
 	Obj3dPG		obj3d_prog(std::string(sgl_dir + OBJ3D_VS_FILE), std::string(sgl_dir + OBJ3D_FS_FILE));
 	SkyboxPG	sky_pg(std::string(sgl_dir + CUBEMAP_VS_FILE), std::string(sgl_dir + CUBEMAP_FS_FILE));
@@ -183,6 +288,9 @@ void sceneHumanGL() {
 	Math::Vector3	dimensions = cubebp.getDimensions();
 
 	Texture *	lena = new Texture(sgl_dir + "images/lena.bmp");
+	Texture *	palette = new Texture("assets/palette256.bmp");
+	Texture *	bmpLength = new Texture("assets/length.bmp");
+#endif // INITS
 
 #ifndef HUMAN_CLASS
 	std::list<Obj3d*>	obj3dList;
@@ -228,10 +336,12 @@ void sceneHumanGL() {
 
 #endif // HUMAN_CLASS
 
+#ifndef FPSS
 	Fps	fps144(144);
 	Fps	fps60(60);
 	Fps	fps20(20);
 	Fps* defaultFps = &fps60;
+#endif
 
 #ifndef BEHAVIORS
 
@@ -287,7 +397,7 @@ void sceneHumanGL() {
 	AnimationHumanBH		running("animations/human_run.anim");
 	running.loop = -1;
 	running.setFpsTick(defaultFps->getTick());
-	running.setSpeed(2);
+	running.setSpeed(0.5);
 	running.addTarget(bob);
 	std::cout << running.targetList.size() << std::endl;
 
@@ -304,7 +414,7 @@ void sceneHumanGL() {
 			i->local.getScale().printData();
 		}
 	}
-
+#ifndef CAM_SKYBOX
 	Texture*	texture2 = new Texture("SimpleGL/images/skybox4.bmp");//skybox3.bmp bug?
 	Skybox		skybox(*texture2, sky_pg);
 	
@@ -315,7 +425,8 @@ void sceneHumanGL() {
 	cam.lockedOrientation = false;
 	cam.speed /= 4;
 
-glfw.setMouseAngle(-1);
+	glfw.setMouseAngle(-1);
+#endif
 
 // #define TESTCUBE
 #ifdef TESTCUBE
@@ -404,19 +515,53 @@ glfw.setMouseAngle(-1);
 // #define FRAMEBUFFER
 #ifndef FRAMEBUFFER
 	FrameBuffer	framebuffer(WINX, WINY);
+	FrameBuffer	framebufferUI(WINX, WINY);
+	FrameBuffer	framebufferUI2(WINX, WINY);
 	if (framebuffer.fboStatus != GL_FRAMEBUFFER_COMPLETE) {
 		std::cout << "FrameBuffer() failed : " << FrameBuffer::getFramebufferStatusInfos(framebuffer.fboStatus) << std::endl;
 		return ;
 	}
+	if (framebufferUI.fboStatus != GL_FRAMEBUFFER_COMPLETE) {
+		std::cout << "FrameBuffer() failed : " << FrameBuffer::getFramebufferStatusInfos(framebuffer.fboStatus) << std::endl;
+		return ;
+	}
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, framebufferUI.fbo);
+	glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, palette->getId(), 0);// mipmap level: 0(base)
+	// glBindFramebuffer(GL_READ_FRAMEBUFFER, framebufferUI2.fbo);
+	glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, bmpLength->getId(), 0);// mipmap level: 0(base)
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
 
 #endif
 #ifndef GAMEMANAGER
+	int pad = 10;
 	HumanManager	gameManager;
 	gameManager.glfw = &glfw;
 	gameManager.human = bob;
 	gameManager.framebuffer = &framebuffer;
+	gameManager.framebufferUI = &framebufferUI;
+	gameManager.framebufferUI2 = &framebufferUI2;
 	gameManager.cam = &cam;
 	gameManager.obj3dList = &raycastList;
+
+	UIPanel	uiSelect;
+	uiSelect.posX = 0;
+	uiSelect.posY = 0;
+	uiSelect.width = WINX / 4;
+	uiSelect.height = WINY / 4;
+	gameManager.uiSelect = &uiSelect;
+// (0, 0, WINX, WINY, 0, 0, WINX/4, WINY/4,
+
+	UIPanel	uiPalette(palette);
+	uiPalette.posX = WINX - palette->getWidth();
+	// uiPalette.posY = 0;
+	// uiPalette.width = WINX / 4;
+	// uiPalette.height = WINY / 4;
+	gameManager.uiPalette = &uiPalette;
+
+	UIPanel	uiLength(bmpLength);
+	uiLength.posX = WINX - bmpLength->getWidth();
+	uiLength.posY = uiPalette.height + pad;
+	gameManager.uiLength = &uiLength;
 
 	glfw.activateDefaultCallbacks(&gameManager);
 	glfwSetMouseButtonCallback(glfw._window, HumanMouseButtonCallback);//override default callback
@@ -424,6 +569,11 @@ glfw.setMouseAngle(-1);
 	// glfwSetWindowMonitor(glfw._window, NULL, 100, 100, WINX, WINY, 0);
 
 #endif
+
+{}
+
+bob->_head.model.setTexture(bmpLength);
+bob->_head.model.displayTexture = true;
 
 #ifndef RENDER
 	// glfwSetKeyCallback(glfw._window, key_callback);
@@ -441,7 +591,7 @@ glfw.setMouseAngle(-1);
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 
 	while (!glfwWindowShouldClose(glfw._window)) {
-// std::cout << ".";
+	// std::cout << ".";
 		if (defaultFps->wait_for_next_frame()) {
 			// Fps::printGlobalFps();
 
@@ -487,7 +637,7 @@ glfw.setMouseAngle(-1);
 				gameManager.human->positionMembers();
 				gameManager.human->updateMembersAnchor();
 			}
-			if (gameManager.currentSelection) {
+			if (gameManager.currentSelection) {//manual rotations
 				float v = 30.0f * defaultFps->getTick();
 				Math::Rotation rx(v, 0, 0);
 				Math::Rotation ry(0, v, 0);
@@ -518,13 +668,13 @@ glfw.setMouseAngle(-1);
 			renderObj3d(obj3dList, cam);
 			renderSkybox(skybox, cam);
 
-			if (1) {//copy FB on window-system-provided framebuffer
-				glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer.fbo);
-				glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-				glBlitFramebuffer(0, 0, WINX, WINY, 0, 0, WINX/4, WINY/4, GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT, GL_NEAREST);
-				glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
-				glBindFramebuffer(GL_FRAMEBUFFER, 0);
-			}
+		#ifndef FRAMEBUFFER_UI
+
+			blitToWindow(&gameManager, gameManager.framebuffer, GL_COLOR_ATTACHMENT0, gameManager.uiSelect);
+			blitToWindow(&gameManager, gameManager.framebufferUI, GL_COLOR_ATTACHMENT0, gameManager.uiPalette);
+			blitToWindow(&gameManager, gameManager.framebufferUI2, GL_COLOR_ATTACHMENT1, gameManager.uiLength);
+
+		#endif //FRAMEBUFFER_UI
 
 			glfwSwapBuffers(glfw._window);
 			if (GLFW_PRESS == glfwGetKey(glfw._window, GLFW_KEY_ESCAPE))

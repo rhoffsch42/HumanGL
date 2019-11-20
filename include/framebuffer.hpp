@@ -17,8 +17,8 @@ public:
 
 	void	updateFramebufferStatus();
 
-	void	getWidth() const;
-	void	getHeight() const;
+	int		getWidth() const;
+	int		getHeight() const;
 
 	//set all as private?
 	GLuint	fbo;

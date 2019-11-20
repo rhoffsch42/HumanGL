@@ -6,14 +6,13 @@
 #    By: rhoffsch <rhoffsch@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2015/05/15 17:38:19 by rhoffsch          #+#    #+#              #
-#    Updated: 2019/11/19 06:23:42 by rhoffsch         ###   ########.fr        #
+#    Updated: 2019/11/20 15:36:30 by rhoffsch         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 NAME			=	HumanGL
 CC				=	g++ -std=c++11
 CFLAGS			=	-Wall -Wextra -Werror -MMD -g -fsanitize=address #-Wpadded
-
 
 INCLUDE			=	-I ${GLEW_DIR}/include \
 					-I ${GLFW_DIR}/include \

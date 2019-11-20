@@ -41,7 +41,7 @@ void		IAnimationBH::generateRotationsDelta() {
 	std::string nextFrame = std::string("frame") + std::to_string((this->_currentFrame) % this->_frameMax + 1);
 	for (auto it = this->jsonData[this->_frame].begin(); it != this->jsonData[this->_frame].end(); ++it) {
 		// std::cout << it.key() << " | " << it.value() << "\n";
-		if (it.key() != "time")
+		if (it.key() != "time")//time is reserved for the keyframe duration, do not use it in your keys!
 			this->_rotaMap[it.key()] = getRotationDelta(this->jsonData, it.key(), this->_frame, nextFrame, this->_stepMax);
 	}
 }
@@ -75,9 +75,9 @@ void		IAnimationBH::behaveOnTarget(BehaviorManaged *target) {
 	}
 	if (this->loop == -1 || this->currentLoop <= this->loop) {
 		// modify target
-		std::cout << "loop" << this->currentLoop << "/" << this->loop \
-			<< ", frame" << this->_currentFrame << "/" << this->_frameMax \
-			<< ", step " << this->_step << "/" << this->_stepMax << std::endl;
+		// std::cout << "loop" << this->currentLoop << "/" << this->loop \
+		// 	<< ", frame" << this->_currentFrame << "/" << this->_frameMax \
+		// 	<< ", step " << this->_step << "/" << this->_stepMax << std::endl;
 		this->applyStepToTarget(target);// = 0
 
 	} else { this->finished = true; }//end of animation

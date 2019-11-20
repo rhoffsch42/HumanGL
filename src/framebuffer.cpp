@@ -77,3 +77,6 @@ string	FrameBuffer::getFramebufferStatusInfos(GLenum status)//bind the FB
 	else
 		return "Framebuffer unknow status";
 }
+
+int		FrameBuffer::getWidth() const { return this->_width; }
+int		FrameBuffer::getHeight() const { return this->_height; }

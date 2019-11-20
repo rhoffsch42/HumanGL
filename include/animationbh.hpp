@@ -54,6 +54,7 @@ using json = nlohmann::json;
 	-> create and dedicate a persistant data struct for each target on the list
 */
 
+//the key "time" is reserved for the keyframe duration, do not use it in your keys!
 class IAnimationBH : public Behavior {
 public:
 	IAnimationBH(const std::string & filename);
@@ -100,7 +101,7 @@ private:
 			std::cout << __PRETTY_FUNCTION__ << " : Error : data corrupted" << std::endl;
 			exit(2);
 		}
-		std::cout << this->_frame << std::endl;
+		// std::cout << this->_frame << std::endl;
 		human->_head.local.setRot(this->jsonData[this->_frame]["head"][0], this->jsonData[this->_frame]["head"][1], this->jsonData[this->_frame]["head"][2]);
 		human->_trunk.local.setRot(this->jsonData[this->_frame]["trunk"][0], this->jsonData[this->_frame]["trunk"][1], this->jsonData[this->_frame]["trunk"][2]);
 		human->_leftArm.local.setRot(this->jsonData[this->_frame]["leftArm"][0], this->jsonData[this->_frame]["leftArm"][1], this->jsonData[this->_frame]["leftArm"][2]);
