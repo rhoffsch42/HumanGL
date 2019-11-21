@@ -29,10 +29,32 @@ IAnimationBH::IAnimationBH(const std::string & filename) {
 IAnimationBH::~IAnimationBH() {
 }
 
-static Math::Rotation		getRotationDelta(json & jsonData, std::string key, std::string frame, std::string nextf, unsigned int stepMax) {
+static Math::Rotation		getRotationDelta(json & jsonData, std::string key, std::string frame, std::string nextf, unsigned int stepMax, bool lastFrame) {
 	Math::Rotation	r1(jsonData[frame][key][0], jsonData[frame][key][1], jsonData[frame][key][2]);
 	Math::Rotation	r2(jsonData[nextf][key][0], jsonData[nextf][key][1], jsonData[nextf][key][2]);
 	r2.sub(r1);
+	
+	/*
+		when at last frame, an obj could have done a complete rotation (at least 360),
+		so we revert the rotation to get a smooth loop
+	-----
+		refaire le meme system que dans in_the_shadow pour ne pas à faire ca.
+		trouver la rotation la plus courte de srcRot%360 vers la destRot%360.
+
+		une autre solution serait de refaire une passe sur les données loadées du json,
+		et mettre les rotations relatives par rapport a la frame precedente,
+		puis utiliser le system in_the_shadow a la derniere frame, si une key "lastFrameClosestRot" est true dans le json
+
+		danger: si on cumule trop de rotation on pourrait theoriquement overflow ou underflow / perte de precision sur float
+		->faire une fonction qui %360 a partir d'une certaine valeur dans SimpleGL ?
+	*/
+	if (lastFrame) { 
+		if (r2.x >= 360.0f)
+			r2.x = fmod(r2.x, 360.0f);
+		while (r2.x <= -360.0f)
+			r2.x += 360.0f;
+	}
+	
 	r2.div(stepMax);
 	return r2;
 }
@@ -41,8 +63,15 @@ void		IAnimationBH::generateRotationsDelta() {
 	std::string nextFrame = std::string("frame") + std::to_string((this->_currentFrame) % this->_frameMax + 1);
 	for (auto it = this->jsonData[this->_frame].begin(); it != this->jsonData[this->_frame].end(); ++it) {
 		// std::cout << it.key() << " | " << it.value() << "\n";
-		if (it.key() != "time")//time is reserved for the keyframe duration, do not use it in your keys!
-			this->_rotaMap[it.key()] = getRotationDelta(this->jsonData, it.key(), this->_frame, nextFrame, this->_stepMax);
+		if (it.key() == "comment") {//"comment" is reserved for comments, do not use it in your keys!
+			// do nothing
+		} else if (it.key() == "pos") {//"pos" is reserved for the relative position, do not use it in your keys!
+			this->_rotaMap[it.key()] = Math::Rotation((float)jsonData[this->_frame][it.key()][0] / (float)this->_stepMax, \
+													(float)jsonData[this->_frame][it.key()][1] / (float)this->_stepMax, \
+													(float)jsonData[this->_frame][it.key()][2] / (float)this->_stepMax);
+		} else if (it.key() != "time") {//"time" is reserved for the keyframe duration, do not use it in your keys!
+			this->_rotaMap[it.key()] = getRotationDelta(this->jsonData, it.key(), this->_frame, nextFrame, this->_stepMax, this->_currentFrame == this->_frameMax);
+		}
 	}
 }
 

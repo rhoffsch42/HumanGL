@@ -6,7 +6,7 @@
 /*   By: rhoffsch <rhoffsch@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/09/18 22:45:30 by rhoffsch          #+#    #+#             */
-/*   Updated: 2019/11/20 17:00:32 by rhoffsch         ###   ########.fr       */
+/*   Updated: 2019/11/21 16:53:36 by rhoffsch         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -76,7 +76,7 @@ private:
 };
 
 static void blitToWindow(HumanManager * manager, FrameBuffer * readFramebuffer, GLenum attachmentPoint, UIPanel *panel) {
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	// glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, readFramebuffer->fbo);
 
@@ -95,9 +95,11 @@ static void blitToWindow(HumanManager * manager, FrameBuffer * readFramebuffer, 
 		w = readFramebuffer->getWidth();
 		h = readFramebuffer->getHeight();
 	}
-	std::cout << w << "x" << h << " to " << panel->width << "x" << panel->height \
-		<< " at " << panel->posX << "x" << panel->posY \
-		<< " -> " << (panel->posX + panel->width) << "x" << (panel->posY + panel->height) << std::endl;
+	if (0) {
+		std::cout << "copy " << w << "x" << h << "\tresized\t" << panel->width << "x" << panel->height \
+			<< "\tat pos\t" << panel->posX << ":" << panel->posY << std::endl;
+			// << " -> " << (panel->posX + panel->width) << "x" << (panel->posY + panel->height) << std::endl;
+	}
 	glBlitFramebuffer(0, 0, w, h, \
 		panel->posX, panel->posY, panel->posX + panel->width, panel->posY + panel->height, \
 		GL_COLOR_BUFFER_BIT, GL_NEAREST);
@@ -105,8 +107,7 @@ static void blitToWindow(HumanManager * manager, FrameBuffer * readFramebuffer, 
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
 }
 
-
-static void	getObjectOnClic(int glX, int glY, HumanManager * manager, bool resetMatrixChecks = false) {
+static void	getObjectOnClic(int glX, int glY, HumanManager * manager, bool resetMatrixChecks = false) {// opengl system!
 	if (!manager->human || !manager->glfw || !manager->cam || !manager->framebuffer) {
 		std::cout << __PRETTY_FUNCTION__ << " : Error : one of several HumanManager pointer is null." << std::endl;
 		return ;
@@ -154,7 +155,7 @@ static void	getObjectOnClic(int glX, int glY, HumanManager * manager, bool reset
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-static void	setMemberColor(int glX, int glY, HumanManager * manager) {
+static void	setMemberColor(int glX, int glY, HumanManager * manager) {// opengl system!
 	std::cout << __PRETTY_FUNCTION__ << std::endl;
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	GLubyte data[4];//RGBA
@@ -232,9 +233,9 @@ void	printHumanKeyFrame(GLFWwindow* window, int key, int scancode, int action, i
 	}
 }
 
-void	printPixelRGB(int x, int y, GLenum format, string prefix) {
+void	printPixelRGB(int glX, int glY, GLenum format, string prefix) {// opengl system!
 	GLubyte data[4];//RGBA
-	glReadPixels(x,	y, 1, 1, format, GL_UNSIGNED_BYTE, &data);
+	glReadPixels(glX, glY, 1, 1, format, GL_UNSIGNED_BYTE, &data);
 	std::cout << prefix << "RGB(" << (unsigned int)data[0] << ", " \
 						<< (unsigned int)data[1] << ", " \
 						<< (unsigned int)data[2] << ")" << std::endl;
@@ -273,12 +274,13 @@ void sceneHumanGL() {
 #ifndef INITS
 	int		WINX = 1600;
 	int		WINY = 900;
-	std::string sgl_dir = "SimpleGL/";
 	Glfw		glfw(WINX, WINY); // screen size
 	glDisable(GL_CULL_FACE);
-
 	GLint maxAttach = 0;
 	glGetIntegerv(GL_MAX_COLOR_ATTACHMENTS, &maxAttach);
+	std::cout << "GL_MAX_COLOR_ATTACHMENTS " << maxAttach << std::endl;
+
+	std::string sgl_dir = "SimpleGL/";
 
 	Obj3dPG		obj3d_prog(std::string(sgl_dir + OBJ3D_VS_FILE), std::string(sgl_dir + OBJ3D_FS_FILE));
 	SkyboxPG	sky_pg(std::string(sgl_dir + CUBEMAP_VS_FILE), std::string(sgl_dir + CUBEMAP_FS_FILE));
@@ -287,13 +289,22 @@ void sceneHumanGL() {
 	Obj3dBP			cubebp(sgl_dir + "obj3d/cube_down.obj", true, false);
 	Math::Vector3	dimensions = cubebp.getDimensions();
 
+	Texture *	bmpLength = new Texture("assets/length.bmp");
+	// exit(0);
 	Texture *	lena = new Texture(sgl_dir + "images/lena.bmp");
 	Texture *	palette = new Texture("assets/palette256.bmp");
-	Texture *	bmpLength = new Texture("assets/length.bmp");
 #endif // INITS
-
-#ifndef HUMAN_CLASS
 	std::list<Obj3d*>	obj3dList;
+
+	Obj3d	floor(cubebp, obj3d_prog);
+	floor.setTexture(lena);
+	floor.displayTexture = true;
+	float si = 500;
+	floor.local.setScale(si, 1, si);
+	floor.local.setPos(-si/2, -10, -si/2);
+	obj3dList.push_back(&floor);
+	
+#ifndef HUMAN_CLASS
 	/*
 		class Human { ... };
 		class HumanEvolved : public Human { more members };
@@ -301,7 +312,6 @@ void sceneHumanGL() {
 		class SuperSaiyan2 : SuperSaiyan1 { longer hairs!! };
 		class SuperSaiyan3 : SuperSaiyan2 { even longer hairs!!! };
 
-		class AnimationBH : Behavior { ... can repeat! };
 	*/
 	float		thickness = 1.0f;	// default value
 	float		lenght = 4.0f;		// default value
@@ -319,20 +329,6 @@ void sceneHumanGL() {
 	// SuperSaiyan1	goku(jack);
 	bob->setHairColor(0,155,155);
 
-	// AnimationBH kamehameha;
-	// kamehameha.addTarget(&goku);
-
-	// //render loop
-	// kamehameha.run()
-
-
-	// std::cout << "adresses main:" << std::endl;
-	// std::cout << obj3dList.size() << std::endl;
-	// for (auto i : obj3dList) {
-	// 	std::cout << &(*i) << std::endl;
-	// 	i->local.getScale().printData();
-	// }
-
 
 #endif // HUMAN_CLASS
 
@@ -344,62 +340,81 @@ void sceneHumanGL() {
 #endif
 
 #ifndef BEHAVIORS
+	#ifndef TRANSFORMBH
+		TransformBH		b0_rot;
+		b0_rot.transform.rot.setUnit(ROT_DEG);
+		b0_rot.transform.rot.y = 80 * defaultFps->getTick();
+		b0_rot.modeRot = ADDITIVE;
+		// b0_rot.addTarget(&bob->_trunk);
+		// b0_rot.addTarget(&bob->_rightArm);
 
-	TransformBH		b0_rot;
-	b0_rot.transform.rot.setUnit(ROT_DEG);
-	b0_rot.transform.rot.y = 80 * defaultFps->getTick();
-	b0_rot.modeRot = ADDITIVE;
-	// b0_rot.addTarget(&bob->_trunk);
-	// b0_rot.addTarget(&bob->_rightArm);
 
+		TransformBH		b1_rot;
+		b1_rot.transform.rot.setUnit(ROT_DEG);
+		b1_rot.transform.rot.x = 200 * defaultFps->getTick();
+		b1_rot.transform.rot.y = 100 * defaultFps->getTick();
+		b1_rot.transform.rot.z = 60 * defaultFps->getTick();
+		b1_rot.modeRot = ADDITIVE;
+		b1_rot.addTarget(&bob->_rightArm);
+		b1_rot.addTarget(&bob->_rightForearm);
+		b1_rot.addTarget(&bob->_leftThigh);
+		b1_rot.addTarget(&bob->_rightCalf);
 
-	TransformBH		b1_rot;
-	b1_rot.transform.rot.setUnit(ROT_DEG);
-	b1_rot.transform.rot.x = 200 * defaultFps->getTick();
-	b1_rot.transform.rot.y = 100 * defaultFps->getTick();
-	b1_rot.transform.rot.z = 60 * defaultFps->getTick();
-	b1_rot.modeRot = ADDITIVE;
-	b1_rot.addTarget(&bob->_rightArm);
-	b1_rot.addTarget(&bob->_rightForearm);
-	b1_rot.addTarget(&bob->_leftThigh);
-	b1_rot.addTarget(&bob->_rightCalf);
+		// bob->_rightCalf.addBehavior(&b1_rot);
 
-	// bob->_rightCalf.addBehavior(&b1_rot);
+		TransformBH		b2_rot;
+		b2_rot.transform.rot.setUnit(ROT_DEG);
+		b2_rot.transform.rot.x = 200 * defaultFps->getTick();
+		b2_rot.transform.rot.y = 80 * defaultFps->getTick();
+		b2_rot.transform.rot.y = 250 * defaultFps->getTick();
+		b2_rot.modeRot = ADDITIVE;
+		b2_rot.addTarget(&bob->_leftArm);
+		b2_rot.addTarget(&bob->_leftForearm);
+		b2_rot.addTarget(&bob->_leftCalf);
+		b2_rot.addTarget(&bob->_rightThigh);
 
-	TransformBH		b2_rot;
-	b2_rot.transform.rot.setUnit(ROT_DEG);
-	b2_rot.transform.rot.x = 200 * defaultFps->getTick();
-	b2_rot.transform.rot.y = 80 * defaultFps->getTick();
-	b2_rot.transform.rot.y = 250 * defaultFps->getTick();
-	b2_rot.modeRot = ADDITIVE;
-	b2_rot.addTarget(&bob->_leftArm);
-	b2_rot.addTarget(&bob->_leftForearm);
-	b2_rot.addTarget(&bob->_leftCalf);
-	b2_rot.addTarget(&bob->_rightThigh);
+		if (false) {// the dab !
+			bob->_head.rotateMember(Math::Rotation(-30,0,0));
+			bob->_trunk.rotateMember(Math::Rotation(0,0,-15));
+			bob->_leftArm.rotateMember(Math::Rotation(0,0,-110));
+			bob->_rightArm.rotateMember(Math::Rotation(110,40,-30));
+			bob->_rightForearm.rotateMember(Math::Rotation(90,0,-20));
+			bob->_rightThigh.rotateMember(Math::Rotation(0,0,45));
+			bob->_rightCalf.rotateMember(Math::Rotation(0,0,-45));
+		} else if (false) {
+			float x = 0.0f;
+			float z = 20.0f;
+			bob->_leftArm.rotateMember(Math::Rotation(x, 0, -z));
+			bob->_rightArm.rotateMember(Math::Rotation(x, 0, z));
+			bob->_leftThigh.rotateMember(Math::Rotation(x, 0, -z));
+			bob->_rightThigh.rotateMember(Math::Rotation(x, 0, z));
+		}
+	#endif //TRANSFORMBH
+	#ifndef ANIMATIONBH
+		AnimationHumanBH		running("animations/human_run.anim.json");
+		running.loop = -1;
+		running.setFpsTick(defaultFps->getTick());
+		running.setSpeed(1);
+		running.addTarget(bob);
 
-	if (false) {// the dab !
-		bob->_head.rotateMember(Math::Rotation(-30,0,0));
-		bob->_trunk.rotateMember(Math::Rotation(0,0,-15));
-		bob->_leftArm.rotateMember(Math::Rotation(0,0,-110));
-		bob->_rightArm.rotateMember(Math::Rotation(110,40,-30));
-		bob->_rightForearm.rotateMember(Math::Rotation(90,0,-20));
-		bob->_rightThigh.rotateMember(Math::Rotation(0,0,45));
-		bob->_rightCalf.rotateMember(Math::Rotation(0,0,-45));
-	} else if (false) {
-		float x = 0.0f;
-		float z = 20.0f;
-		bob->_leftArm.rotateMember(Math::Rotation(x, 0, -z));
-		bob->_rightArm.rotateMember(Math::Rotation(x, 0, z));
-		bob->_leftThigh.rotateMember(Math::Rotation(x, 0, -z));
-		bob->_rightThigh.rotateMember(Math::Rotation(x, 0, z));
-	}
+		AnimationHumanBH		jumping("animations/human_jump.anim.json");
+		jumping.loop = 0;
+		jumping.setFpsTick(defaultFps->getTick());
+		jumping.setSpeed(1);
+		jumping.addTarget(bob);
 
-	AnimationHumanBH		running("animations/human_run.anim");
-	running.loop = -1;
-	running.setFpsTick(defaultFps->getTick());
-	running.setSpeed(0.5);
-	running.addTarget(bob);
-	std::cout << running.targetList.size() << std::endl;
+		AnimationHumanBH		boston("animations/human_boston.anim.json");
+		// boston.loop = -1;
+		boston.setFpsTick(defaultFps->getTick());
+		boston.setSpeed(1);
+		boston.addTarget(bob);
+
+		AnimationHumanBH		dab("animations/human_dab.anim.json");
+		// boston.loop = -1;
+		dab.setFpsTick(defaultFps->getTick());
+		dab.setSpeed(1);
+		dab.addTarget(bob);
+	#endif // ANIMATIONBH
 
 #endif // BEHAVIORS
 	// Behavior::areActive = false;
@@ -408,12 +423,6 @@ void sceneHumanGL() {
 	// b2_rot.isActive = false;
 
 
-	if (false) {
-		std::cout << obj3dList.size() << std::endl;
-		for (auto i : obj3dList) {
-			i->local.getScale().printData();
-		}
-	}
 #ifndef CAM_SKYBOX
 	Texture*	texture2 = new Texture("SimpleGL/images/skybox4.bmp");//skybox3.bmp bug?
 	Skybox		skybox(*texture2, sky_pg);
@@ -428,49 +437,57 @@ void sceneHumanGL() {
 	glfw.setMouseAngle(-1);
 #endif
 
-// #define TESTCUBE
+#define TESTCUBE
 #ifdef TESTCUBE
-	std::cout << "fuck --------------------\n";
 
-	Math::Rotation	rot(1,1,0);
-	float c = 0.1f;
+	#ifdef TESTSC
+		std::cout << "fuck --------------------\n";
 
-	Obj3d	origine(cubebp, obj3d_prog);
-	origine.setColor(0,0,0);
-	origine.local.setScale(-c,-c,-c);
-	std::cout << "fuck " << origine.getId() << std::endl;
+		Math::Rotation	rot(1,1,0);
+		float c = 0.1f;
 
-	Obj3d	cube(cubebp, obj3d_prog);
-	cube.setColor(255,70,0);
-	cube.setTexture(lena);
-	cube.displayTexture = true;
-	std::cout << "fuck " << cube.getId() << std::endl;
+		Obj3d	origine(cubebp, obj3d_prog);
+		origine.setColor(0,0,0);
+		origine.local.setScale(-c,-c,-c);
+		std::cout << "fuck " << origine.getId() << std::endl;
 
-	Math::Vector3	s(cube.local.getScale());
-	Obj3d	pivot(cubebp, obj3d_prog);
-	pivot.setColor(255,0,255);
-	pivot.local.setPos(s.x/2, s.y/2, s.z/2);
-	pivot.local.setScale(c,c,c);
-	pivot.local.setPos(5,5,5);
-	std::cout << "fuck " << pivot.getId() << std::endl;
+		Obj3d	cube(cubebp, obj3d_prog);
+		cube.setColor(255,70,0);
+		cube.setTexture(lena);
+		cube.displayTexture = true;
+		std::cout << "fuck " << cube.getId() << std::endl;
 
-	Obj3d	cubedir(cubebp, obj3d_prog);
-	cubedir.local.setScale(c,c,c);
-	cubedir.setColor(0,255,0);
-	Math::Vector3 pc = pivot.local.getPos();
-	pc.add(rot.x, rot.y, rot.z);
-	cubedir.local.setPos(pc);
-	std::cout << "fuck " << cubedir.getId() << std::endl;
+		Math::Vector3	s(cube.local.getScale());
+		Obj3d	pivot(cubebp, obj3d_prog);
+		pivot.setColor(255,0,255);
+		pivot.local.setPos(s.x/2, s.y/2, s.z/2);
+		pivot.local.setScale(c,c,c);
+		pivot.local.setPos(5,5,5);
+		std::cout << "fuck " << pivot.getId() << std::endl;
 
-	cube.setParent(&pivot);
-	cube.local.setPos(2,2,2);
+		Obj3d	cubedir(cubebp, obj3d_prog);
+		cubedir.local.setScale(c,c,c);
+		cubedir.setColor(0,255,0);
+		Math::Vector3 pc = pivot.local.getPos();
+		pc.add(rot.x, rot.y, rot.z);
+		cubedir.local.setPos(pc);
+		std::cout << "fuck " << cubedir.getId() << std::endl;
 
-	Math::Vector3	offset(cube.local.getPos());
-	offset.sub(pivot.local.getPos());
-	float	mag = abs(offset.magnitude());
-	std::cout << "fuck --------------------\n";
+		cube.setParent(&pivot);
+		cube.local.setPos(2,2,2);
 
-	#define MANYCUBES
+		Math::Vector3	offset(cube.local.getPos());
+		offset.sub(pivot.local.getPos());
+		float	mag = abs(offset.magnitude());
+		
+		// obj3dList.push_back(&origine);	// 96
+		// obj3dList.push_back(&pivot);	// 98
+		// obj3dList.push_back(&cube);		// 97
+		// obj3dList.push_back(&cubedir);	// 99
+		std::cout << "fuck --------------------\n";
+	#endif //TESTSC
+	
+	// #define MANYCUBES
 	#ifdef MANYCUBES
 		TransformBH		b5;
 		b5.transform.rot.setUnit(ROT_DEG);
@@ -478,7 +495,7 @@ void sceneHumanGL() {
 		b5.transform.rot.y = 100 * defaultFps->getTick();
 		b5.transform.rot.z = 60 * defaultFps->getTick();
 		b5.modeRot = ADDITIVE;
-		unsigned int max = 50;
+		unsigned int max = 100;
 		if (1) {
 			for (size_t i = 0; i < max; i++) {
 				for (size_t j = 0; j < max; j++) {
@@ -501,16 +518,12 @@ void sceneHumanGL() {
 		cam.speed *= 10;	
 		#endif
 
-	obj3dList.push_back(&origine);	// 96
-	obj3dList.push_back(&pivot);	// 98
-	obj3dList.push_back(&cube);		// 97
-	obj3dList.push_back(&cubedir);	// 99
+
 #endif
 
-	// obj3dList.merge(bob->getObjList());
-	obj3dList = bob->getObjList();
-
-	list<Obj3d*>	raycastList = obj3dList;
+	obj3dList.merge(bob->getObjList());
+	// obj3dList = bob->getObjList();
+	list<Obj3d*>	raycastList = bob->getObjList();
 
 // #define FRAMEBUFFER
 #ifndef FRAMEBUFFER
@@ -527,11 +540,12 @@ void sceneHumanGL() {
 	}
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, framebufferUI.fbo);
 	glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, palette->getId(), 0);// mipmap level: 0(base)
-	// glBindFramebuffer(GL_READ_FRAMEBUFFER, framebufferUI2.fbo);
-	glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, bmpLength->getId(), 0);// mipmap level: 0(base)
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, framebufferUI2.fbo);
+	glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, bmpLength->getId(), 0);// mipmap level: 0(base)
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
 
 #endif
+
 #ifndef GAMEMANAGER
 	int pad = 10;
 	HumanManager	gameManager;
@@ -549,7 +563,7 @@ void sceneHumanGL() {
 	uiSelect.width = WINX / 4;
 	uiSelect.height = WINY / 4;
 	gameManager.uiSelect = &uiSelect;
-// (0, 0, WINX, WINY, 0, 0, WINX/4, WINY/4,
+	// (0, 0, WINX, WINY, 0, 0, WINX/4, WINY/4,
 
 	UIPanel	uiPalette(palette);
 	uiPalette.posX = WINX - palette->getWidth();
@@ -569,11 +583,6 @@ void sceneHumanGL() {
 	// glfwSetWindowMonitor(glfw._window, NULL, 100, 100, WINX, WINY, 0);
 
 #endif
-
-{}
-
-bob->_head.model.setTexture(bmpLength);
-bob->_head.model.displayTexture = true;
 
 #ifndef RENDER
 	// glfwSetKeyCallback(glfw._window, key_callback);
@@ -598,31 +607,34 @@ bob->_head.model.displayTexture = true;
 			// b0_rot.run();
 			// b1_rot.run();
 			// b2_rot.run();
-			running.run();
+			// running.run();
+			// jumping.run();
+			boston.run();
+			// dab.run();
 			#ifdef MANYCUBES
-			b5.run();
+			// b5.run();
 			#endif
-			
-			// printPixelRGB(0,0,GL_RGB, "");
 			
 			#ifdef TESTCUBE
-				if (0) {
-					std::cout << "tik: " << ti << std::endl;
-					float r = 40 * ti;
-					offset = cube.local.getPos();
-					offset.sub(pivot.local.getPos());
-					float m = abs(offset.magnitude());
-					std::cout << "mag: " << mag << std::endl;
-					std::cout << "m: " << m << std::endl;
-					std::cout <<"\n";
-					pivot.local.rotate(rot);
-					// cube.local.rotateAround2(pivot.local.getPos(), rot, r);
-					// cube.local.rotateAround(center.local.getPos(), Math::Rotation(r,r,0));
-				}
-			#endif
+				#ifdef TESTSC
+					if (0) {
+						std::cout << "tik: " << ti << std::endl;
+						float r = 40 * ti;
+						offset = cube.local.getPos();
+						offset.sub(pivot.local.getPos());
+						float m = abs(offset.magnitude());
+						std::cout << "mag: " << mag << std::endl;
+						std::cout << "m: " << m << std::endl;
+						std::cout <<"\n";
+						pivot.local.rotate(rot);
+						// cube.local.rotateAround2(pivot.local.getPos(), rot, r);
+						// cube.local.rotateAround(center.local.getPos(), Math::Rotation(r,r,0));
+					}
+				#endif //TESTSC
+			#endif //TESTCUBE
 
-			// getObjectOnClic(0,0, &gameManager);
-
+			// std::cout << "anim: "; running._rotaMap["pos"].printData();
+			// std::cout << "bob: "; bob->_trunk.local.getPos().printData();
 
 			if (gameManager.currentSelection && GLFW_PRESS == glfwGetKey(glfw._window, GLFW_KEY_P)) {
 				gameManager.currentSelection->local.enlarge(0, 1 * defaultFps->getTick(), 0);
@@ -669,11 +681,9 @@ bob->_head.model.displayTexture = true;
 			renderSkybox(skybox, cam);
 
 		#ifndef FRAMEBUFFER_UI
-
 			blitToWindow(&gameManager, gameManager.framebuffer, GL_COLOR_ATTACHMENT0, gameManager.uiSelect);
 			blitToWindow(&gameManager, gameManager.framebufferUI, GL_COLOR_ATTACHMENT0, gameManager.uiPalette);
-			blitToWindow(&gameManager, gameManager.framebufferUI2, GL_COLOR_ATTACHMENT1, gameManager.uiLength);
-
+			blitToWindow(&gameManager, gameManager.framebufferUI2, GL_COLOR_ATTACHMENT0, gameManager.uiLength);
 		#endif //FRAMEBUFFER_UI
 
 			glfwSwapBuffers(glfw._window);

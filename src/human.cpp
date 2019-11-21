@@ -43,17 +43,17 @@ _thickness(thickness), _lenght(lenght)
 	this->_rightCalf.setParent(&this->_rightThigh);
 
 	//colors
-	this->_head.model.setColor((char)1, (char)1, 0);
+	this->_head.model.setColor(255, 255, 0);
 	this->_trunk.model.setColor(50, 20, 10);
-	this->_leftArm.model.setColor(0, 0xff, 0);
-	this->_rightArm.model.setColor(0, 0, 0xff);
-	this->_leftForearm.model.setColor(0xff, 0, 0);
-	this->_rightForearm.model.setColor(0, 0xff, 0xff);
+	this->_leftArm.model.setColor(0, 140, 80);
+	this->_rightArm.model.setColor(220, 0, 72);
+	this->_leftForearm.model.setColor(100, 80, 250);
+	this->_rightForearm.model.setColor(0, 50, 150);
 
-	this->_leftThigh.model.setColor(0xff, 0xff, 0);
-	this->_rightThigh.model.setColor(0xff, 0, 0);
-	this->_leftCalf.model.setColor(0, 0, 0);
-	this->_rightCalf.model.setColor(0xff, 0xff, 0xff);
+	this->_leftThigh.model.setColor(52, 250, 150);
+	this->_rightThigh.model.setColor(250, 20, 105);
+	this->_leftCalf.model.setColor(120, 20, 180);
+	this->_rightCalf.model.setColor(35, 82, 185);
 
 	this->_objList.push_back(&this->_head.model);
 	this->_objList.push_back(&this->_trunk.model);

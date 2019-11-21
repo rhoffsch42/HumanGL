@@ -51,10 +51,13 @@ using json = nlohmann::json;
 	recreate a new instance to operate on targets independently
 	bool Behavior::isPersistant = true;
 
-	-> create and dedicate a persistant data struct for each target on the list
+	refacto -> create and dedicate a persistant data struct for each target on the list
 */
 
-//the key "time" is reserved for the keyframe duration, do not use it in your keys!
+/*
+	the key "time" is reserved for the keyframe duration, do not use it for members
+	the key "pos" is reserved for the relative position, do not use it for members
+*/
 class IAnimationBH : public Behavior {
 public:
 	IAnimationBH(const std::string & filename);
@@ -71,6 +74,7 @@ public:
 	int				loop;//n = n loops, -1 = infinite loops //persistant
 	int				currentLoop;//persistant
 	bool			finished;//persistant
+	std::map<std::string, Math::Rotation>	_rotaMap;
 protected:
 	float			_fpsTick;
 	std::string		_filename;
@@ -82,7 +86,6 @@ protected:
 	unsigned int	_step;//persistant
 	float			_speed;//persistant
 
-	std::map<std::string, Math::Rotation>	_rotaMap;
 	void			generateRotationsDelta();
 
 	virtual void	applyFrameToTarget(BehaviorManaged *target) = 0;
@@ -112,6 +115,7 @@ private:
 		human->_rightThigh.local.setRot(this->jsonData[this->_frame]["rightThigh"][0], this->jsonData[this->_frame]["rightThigh"][1], this->jsonData[this->_frame]["rightThigh"][2]);
 		human->_leftCalf.local.setRot(this->jsonData[this->_frame]["leftCalf"][0], this->jsonData[this->_frame]["leftCalf"][1], this->jsonData[this->_frame]["leftCalf"][2]);
 		human->_rightCalf.local.setRot(this->jsonData[this->_frame]["rightCalf"][0], this->jsonData[this->_frame]["rightCalf"][1], this->jsonData[this->_frame]["rightCalf"][2]);
+		human->_trunk.local.translate(this->_rotaMap["pos"]);
 	}
 	void			applyStepToTarget(BehaviorManaged *target) {
 		Human *	human = dynamic_cast<Human*>(target);//should always success, as we tested it on isCompatible()
@@ -129,5 +133,6 @@ private:
 		human->_rightCalf.rotateMember(this->_rotaMap["rightCalf"]);
 		human->_rightForearm.rotateMember(this->_rotaMap["rightForearm"]);
 		human->_rightThigh.rotateMember(this->_rotaMap["rightThigh"]);
+		human->_trunk.local.translate(this->_rotaMap["pos"]);
 	}
 };
