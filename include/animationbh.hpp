@@ -116,7 +116,10 @@ private:
 		human->_rightThigh.local.setRot(this->jsonData[this->_frame]["rightThigh"][0], this->jsonData[this->_frame]["rightThigh"][1], this->jsonData[this->_frame]["rightThigh"][2]);
 		human->_leftCalf.local.setRot(this->jsonData[this->_frame]["leftCalf"][0], this->jsonData[this->_frame]["leftCalf"][1], this->jsonData[this->_frame]["leftCalf"][2]);
 		human->_rightCalf.local.setRot(this->jsonData[this->_frame]["rightCalf"][0], this->jsonData[this->_frame]["rightCalf"][1], this->jsonData[this->_frame]["rightCalf"][2]);
-		human->_trunk.local.translate(this->_rotaMap["pos"]);
+		float coef = human->getLenght() / 4.0f;//4 = default length
+		Math::Vector3 mvt = this->_rotaMap["pos"];
+		mvt.mult(coef);
+		human->_trunk.local.translate(mvt);
 	}
 	void			applyStepToTarget(BehaviorManaged *target) {
 		Human *	human = dynamic_cast<Human*>(target);//should always success, as we tested it on isCompatible()
@@ -134,6 +137,9 @@ private:
 		human->_rightCalf.rotateMember(this->_rotaMap["rightCalf"]);
 		human->_rightForearm.rotateMember(this->_rotaMap["rightForearm"]);
 		human->_rightThigh.rotateMember(this->_rotaMap["rightThigh"]);
-		human->_trunk.local.translate(this->_rotaMap["pos"]);
+		float coef = human->getLenght() / 4.0f;//4 = default length
+		Math::Vector3 mvt = this->_rotaMap["pos"];
+		mvt.mult(coef);
+		human->_trunk.local.translate(mvt);
 	}
 };
