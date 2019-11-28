@@ -66,8 +66,9 @@ public:
 	void		behaveOnTarget(BehaviorManaged *target);
 	bool		isCompatible(BehaviorManaged *target) const;
 
-	void		setFpsTick(float tick);
 	void		setSpeed(float speed);
+	void		setFpsTick(float tick);
+	void		reset();
 	std::string	getFilename() const;
 
 	json			jsonData;

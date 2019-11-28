@@ -26,10 +26,25 @@
 		"rightForearm":[-65.0,0.0,0.0],
 		"rightThigh":[-42.0,0.0,0.0],
 		"trunk":[16.0,0.0,0.0],
+		"pos":[0.0,1.0,0.0],
+		"time":0.25
+	},
+	"frame3":{
+		"comment":"debout",
+		"head":[0.0,0.0,0.0],
+		"leftArm":[0.0,0.0,0.0],
+		"leftCalf":[0.0,0.0,0.0],
+		"leftForearm":[0.0,0.0,0.0],
+		"leftThigh":[0.0,0.0,0.0],
+		"rightArm":[0.0,0.0,0.0],
+		"rightCalf":[0.0,0.0,0.0],
+		"rightForearm":[0.0,0.0,0.0],
+		"rightThigh":[0.0,0.0,0.0],
+		"trunk":[0.0,0.0,0.0],
 		"pos":[0.0,6.0,0.0],
 		"time":1
 	},
-	"frame3":{
+	"frame4":{
 		"comment":"en saut",
 		"head":[0.0,0.0,0.0],
 		"leftArm":[0.0,0.0,-23.0],
@@ -44,7 +59,7 @@
 		"pos":[0.0,-6.0,0.0],
 		"time":1
 	},
-	"frame4":{
+	"frame5":{
 		"comment":"post jump",
 		"head":[-13.5,0.0,0.0],
 		"leftArm":[35.0,0.0,0.0],
@@ -58,6 +73,21 @@
 		"trunk":[16.0,0.0,0.0],
 		"pos":[0.0,1.0,0.0],
 		"time":0.25
+	},
+	"frame6":{
+		"comment":"debout",
+		"head":[0.0,0.0,0.0],
+		"leftArm":[0.0,0.0,0.0],
+		"leftCalf":[0.0,0.0,0.0],
+		"leftForearm":[0.0,0.0,0.0],
+		"leftThigh":[0.0,0.0,0.0],
+		"rightArm":[0.0,0.0,0.0],
+		"rightCalf":[0.0,0.0,0.0],
+		"rightForearm":[0.0,0.0,0.0],
+		"rightThigh":[0.0,0.0,0.0],
+		"trunk":[0.0,0.0,0.0],
+		"pos":[0.0,0.0,0.0],
+		"time":3
 	},
 	"loop":-1
 }

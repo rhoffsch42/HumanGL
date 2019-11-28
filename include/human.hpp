@@ -17,7 +17,7 @@ public:
 	Obj3d			model;
 	Math::Vector3	anchor;
 	void			updateAnchor(void) {
-		std::cout << __PRETTY_FUNCTION__ << std::endl;
+		// std::cout << __PRETTY_FUNCTION__ << std::endl;
 		BodyPart *	parent = dynamic_cast<BodyPart*>(this->model.getParent());
 		Math::Vector3	ps = parent->model.local.getScale();
 		Math::Vector3	s = this->model.local.getScale();

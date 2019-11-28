@@ -1,0 +1,33 @@
+{
+	"frame1":{
+		"comment":"debout",
+		"head":[0.0,0.0,0.0],
+		"leftArm":[0.0,0.0,0.0],
+		"leftCalf":[0.0,0.0,0.0],
+		"leftForearm":[0.0,0.0,0.0],
+		"leftThigh":[0.0,0.0,0.0],
+		"rightArm":[0.0,0.0,0.0],
+		"rightCalf":[0.0,0.0,0.0],
+		"rightForearm":[0.0,0.0,0.0],
+		"rightThigh":[0.0,0.0,0.0],
+		"trunk":[0.0,0.0,0.0],
+		"pos":[0.0,0.0,0.0],
+		"time":5
+	},
+	"frame2":{
+		"comment":"debout",
+		"head":[0.0,0.0,0.0],
+		"leftArm":[0.0,0.0,0.0],
+		"leftCalf":[0.0,0.0,0.0],
+		"leftForearm":[0.0,0.0,0.0],
+		"leftThigh":[0.0,0.0,0.0],
+		"rightArm":[0.0,0.0,0.0],
+		"rightCalf":[0.0,0.0,0.0],
+		"rightForearm":[0.0,0.0,0.0],
+		"rightThigh":[0.0,0.0,0.0],
+		"trunk":[0.0,0.0,0.0],
+		"pos":[0.0,0.0,0.0],
+		"time":5
+	},
+	"loop":-1
+}

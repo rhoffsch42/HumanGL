@@ -72,7 +72,7 @@ _thickness(thickness), _lenght(lenght)
 // }
 
 Human &			Human::operator=(const Human & src) {//FIX Obj3d model are well copied ?
-	std::cout << __PRETTY_FUNCTION__ << std::endl;
+	// std::cout << __PRETTY_FUNCTION__ << std::endl;
 	this->_thickness = src._thickness;
 	this->_lenght = src._lenght;
 

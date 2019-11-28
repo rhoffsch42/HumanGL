@@ -131,4 +131,12 @@ void		IAnimationBH::setFpsTick(float tick) {
 		this->_fpsTick = tick;
 	}
 }
+
+void		IAnimationBH::reset() {
+	this->_currentFrame = 0;
+	this->currentLoop = 0;
+	this->_step = 0;
+	this->finished = false;
+}
+
 std::string	IAnimationBH::getFilename() const { return this->_filename; }
