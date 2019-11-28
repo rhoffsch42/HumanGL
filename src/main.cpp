@@ -6,7 +6,7 @@
 /*   By: rhoffsch <rhoffsch@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/09/18 22:45:30 by rhoffsch          #+#    #+#             */
-/*   Updated: 2019/11/28 04:16:35 by rhoffsch         ###   ########.fr       */
+/*   Updated: 2019/11/28 04:26:28 by rhoffsch         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,7 +64,7 @@ public:
 private:
 };
 
-#define MAX_ANIM 5 // 4 animations + 1 for nullptr (pause)
+#define MAX_ANIM 6 // 5 animations + 1 for nullptr (pause)
 class HumanManager : public GameManager {
 public:
 	HumanManager() : GameManager() {
@@ -528,6 +528,7 @@ void sceneHumanGL() {
 	gameManager.animations[2] = &running;
 	gameManager.animations[3] = &jumping;
 	gameManager.animations[4] = &boston;
+	gameManager.animations[5] = &dab;
 	gameManager.currentAnimation = gameManager.animations[0];
 	gameManager.animationPaused = false;
 
