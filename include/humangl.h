@@ -15,3 +15,5 @@
 #include "transformBH.hpp"
 #include "fps.hpp"
 #include "gamemanager.hpp"
+
+#define FLOOR -10

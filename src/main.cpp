@@ -6,7 +6,7 @@
 /*   By: rhoffsch <rhoffsch@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/09/18 22:45:30 by rhoffsch          #+#    #+#             */
-/*   Updated: 2019/11/28 06:53:33 by rhoffsch         ###   ########.fr       */
+/*   Updated: 2019/11/29 18:29:22 by rhoffsch         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,8 @@
 #include "supersaiyan1.hpp"
 #include "framebuffer.hpp"
 #include "animationbh.hpp"
+#include "humanmanager.hpp"
+#include "uipanel.hpp"
 
 #include <string>
 #include <cstdio>
@@ -30,93 +32,7 @@
 #include <json/json.hpp>
 using json = nlohmann::json;
 
-#define FLOOR	-10.0f
-
-class UIPanel {
-public:
-	UIPanel() {
-		this->texture = nullptr;
-		this->posX = 0;
-		this->posY = 0;
-		this->width = 100;
-		this->height = 100;
-	}
-	UIPanel(Texture * tex) {
-		this->texture = tex;
-		this->posX = 0;
-		this->posY = 0;
-		this->width = tex->getWidth();
-		this->height = tex->getHeight();
-	}
-	~UIPanel() {}
-	bool	isOnPanel(int glX, int glY) {
-		// this can be computed only once at constructor, at setPos(), at setWidth(), at setHeight()
-		int x0 = this->posX;
-		int y0 = this->posY;
-		int x1 = this->posX + this->width;
-		int y1 = this->posY + this->height;
-
-		return (glX >= x0 && glX <= x1 && glY >= y0 && glY <= y1);
-	}
-	Texture *	texture;
-	int			posX;
-	int			posY;
-	int			width;
-	int 		height;
-private:
-};
-
-#define MAX_ANIM 6 // 5 animations + 1 for nullptr (pause)
-class HumanManager : public GameManager {
-public:
-	HumanManager() : GameManager() {
-		this->defaultFps = nullptr;
-		this->lmbPressed = false;
-		this->obj3dList = nullptr;
-
-		this->human = nullptr;
-		this->framebuffer = nullptr;
-		this->framebufferUI = nullptr;
-		this->framebufferUI2 = nullptr;
-		this->framebufferUI3 = nullptr;
-		this->framebufferUI4 = nullptr;
-		this->framebufferUI5 = nullptr;
-		this->uiPalette = nullptr;
-		this->uiLength = nullptr;
-		this->uiSelect = nullptr;
-		this->uiGlobal = nullptr;
-		this->uiThickness = nullptr;
-		this->uiAnimButtons = nullptr;
-		this->currentAnimation = nullptr;
-		this->animationPaused = false;
-	}
-	~HumanManager() {
-	}
-	Fps *			defaultFps;
-	bool			lmbPressed;
-	list<Obj3d*> *	obj3dList;
-	//above are for GameManager
-
-	Human *			human;
-	FrameBuffer *	framebuffer;
-	FrameBuffer *	framebufferUI;
-	FrameBuffer *	framebufferUI2;
-	FrameBuffer *	framebufferUI3;
-	FrameBuffer *	framebufferUI4;
-	FrameBuffer *	framebufferUI5;
-	UIPanel *		uiPalette;
-	UIPanel *		uiLength;
-	UIPanel *		uiSelect;
-	UIPanel *		uiGlobal;
-	UIPanel *		uiThickness;
-	UIPanel *		uiAnimButtons;
-	AnimationHumanBH *	animations[MAX_ANIM];
-	AnimationHumanBH *	currentAnimation;
-	bool				animationPaused;
-private:
-};
-
-static void blitToWindow(HumanManager * manager, FrameBuffer * readFramebuffer, GLenum attachmentPoint, UIPanel *panel) {
+void blitToWindow(HumanManager * manager, FrameBuffer * readFramebuffer, GLenum attachmentPoint, UIPanel *panel) {
 	// glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, readFramebuffer->fbo);
@@ -137,13 +53,12 @@ static void blitToWindow(HumanManager * manager, FrameBuffer * readFramebuffer, 
 		h = readFramebuffer->getHeight();
 	}
 	if (0) {
-		std::cout << "copy " << w << "x" << h << "\tresized\t" << panel->width << "x" << panel->height \
-			<< "\tat pos\t" << panel->posX << ":" << panel->posY << std::endl;
+		std::cout << "copy " << w << "x" << h << "\tresized\t" << panel->_width << "x" << panel->_height \
+			<< "\tat pos\t" << panel->_posX << ":" << panel->_posY << std::endl;
 			// << " -> " << (panel->posX + panel->width) << "x" << (panel->posY + panel->height) << std::endl;
 	}
 	glBlitFramebuffer(0, 0, w, h, \
-		panel->posX, panel->posY, panel->posX + panel->width, panel->posY + panel->height, \
-		GL_COLOR_BUFFER_BIT, GL_NEAREST);
+		panel->_posX, panel->_posY, panel->_posX2, panel->_posY2, GL_COLOR_BUFFER_BIT, GL_NEAREST);
 
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
 }
@@ -194,115 +109,20 @@ static void	getObjectOnClic(int glX, int glY, HumanManager * manager, bool reset
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-static void	setMemberColor(int glX, int glY, HumanManager * manager) {// opengl system!
-	// std::cout << __PRETTY_FUNCTION__ << std::endl;
-	if (!manager->currentSelection) {
-		std::cout << "Error : no member selected" << std::endl;
-		return ;
-	}
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	GLubyte data[4];//RGBA
-	glReadPixels(glX, glY, 1, 1, GL_RGB, GL_UNSIGNED_BYTE, &data);
-	Obj3d *		o = dynamic_cast<Obj3d*>(manager->currentSelection);
-	if (!o) { std::cout << __PRETTY_FUNCTION__ << " : Error : dymanic_cast failed" << std::endl; exit(2); }
-	std::cout << "color: " << (int)data[0] << " " << (int)data[1] << " " << (int)data[2] << std::endl;
-	o->setColor(data[0], data[1], data[2]);
-}
-static void	selectAnimation(int glX, int glY, HumanManager * manager) {// opengl system!
-	(void)glY;
-	// std::cout << __PRETTY_FUNCTION__ << std::endl;
-	UIPanel *	panel = manager->uiAnimButtons;
-	int index = (glX - panel->posX) / (panel->width / MAX_ANIM);
-	if (index) {
-		manager->animationPaused = false;
-		Math::Vector3	pos = manager->human->_trunk.local.getPos();
-		pos.y = FLOOR + manager->human->_trunk.model.local.getScale().y + manager->human->_rightCalf.model.local.getScale().y * 2;//-10 = floor
-		manager->human->_trunk.local.setPos(pos);
-		manager->currentAnimation = manager->animations[index];
-		manager->currentAnimation->reset();
-	} else {
-		manager->animationPaused = !manager->animationPaused;
-	}
-}
-
-#define HUMAN			0
-#define HUMAN_EVOLVED	1
-#define SUPERSAIYAN1	2
-static void	setMemberLenght(int glX, int glY, HumanManager * manager) {// opengl system!
-	(void)glY;
-	// std::cout << __PRETTY_FUNCTION__ << std::endl;
-	if (!manager->currentSelection) {
-		std::cout << "Error : no member selected" << std::endl;
-		return ;
-	}
-	float speed = 3.0f;
-	if (glX - manager->uiLength->posX <= manager->uiLength->width / 2) { // reduce length
-		if (manager->currentSelection->local.getScale().y < 1.0f) // minimum length
-			return ;
-		speed *= -1.0f;
-	}
-	manager->currentSelection->local.enlarge(0, speed * manager->defaultFps->getTick(), 0);
-	
-	//update members
-	int i = HUMAN;
-	HumanEvolved * he = dynamic_cast<HumanEvolved*>(manager->human);
-	HumanEvolved * ss1 = dynamic_cast<SuperSaiyan1*>(manager->human);
-	if (ss1)
-		i = SUPERSAIYAN1;
-	else if (he)
-		i = HUMAN_EVOLVED;
-	float t = manager->human->getThickness();
-	switch (i) {
-		case SUPERSAIYAN1:
-			// nothing to do, as it's only the hairs
-		case HUMAN_EVOLVED:
-			he->_leftHand.position(t);
-			he->_rightHand.position(t);
-			he->_leftFoot.position(t);
-			he->_rightFoot.position(t);
-		case HUMAN:
-			manager->human->positionMembers();
-			manager->human->updateMembersAnchor();
-	}		
-}
-void		setGlobalLength(int glX, int glY, HumanManager * manager) {
-	(void)glY;
-	// std::cout << __PRETTY_FUNCTION__ << std::endl;
-	float speed = 3.0f;
-	float l = manager->human->getLenght();
-	if (glX - manager->uiGlobal->posX <= manager->uiGlobal->width / 2) { // reduce length
-		speed *= -1.0f;
-	}
-	l += speed * manager->defaultFps->getTick();
-	manager->human->setLenght(l);
-	l = manager->human->_trunk.model.local.getScale().y + manager->human->_rightCalf.model.local.getScale().y * 2;
-	manager->human->_trunk.local.setPos(0, FLOOR + l, 0);
-}
-void		setThickness(int glX, int glY, HumanManager * manager) {
-	(void)glY;
-	// std::cout << __PRETTY_FUNCTION__ << std::endl;
-	float speed = 3.0f;
-	float t = manager->human->getThickness();
-	if (glX - manager->uiGlobal->posX <= manager->uiGlobal->width / 2) { // reduce length
-		speed *= -1.0f;
-	}
-	t += speed * manager->defaultFps->getTick();
-	manager->human->setThickness(t);
-}
 static bool	UIPanelActions(int glX, int glY, HumanManager * manager, GLenum action) {
 	bool	isOnAPanel = true;
 	if (action == GLFW_PRESS && manager->uiPalette->isOnPanel(glX, glY)) {
-		setMemberColor(glX, glY, manager);// transform it: panel->action(x, y, manager); // void	UIPanel::action(...) = 0; or func ptr
+		manager->uiPalette->action(glX, glY, manager);// transform it: panel->action(x, y, manager); // void	UIPanel::action(...) = 0; or func ptr
 	} else if (action == GLFW_PRESS && manager->uiAnimButtons->isOnPanel(glX, glY)) {
-		selectAnimation(glX, glY, manager);
+		manager->uiAnimButtons->action(glX, glY, manager);
 	} else if (action == GLFW_REPEAT && manager->uiLength->isOnPanel(glX, glY)) {
-		setMemberLenght(glX, glY, manager);
+		manager->uiLength->action(glX, glY, manager);
 	} else if (action == GLFW_REPEAT && manager->uiGlobal->isOnPanel(glX, glY)) {
-		setGlobalLength(glX, glY, manager);
+		manager->uiGlobal->action(glX, glY, manager);
 	} else if (action == GLFW_REPEAT && manager->uiThickness->isOnPanel(glX, glY)) {
-		setThickness(glX, glY, manager);
-	} else if (action == GLFW_REPEAT && manager->uiSelect->isOnPanel(glX, glY)) {
-		// we do nothing here
+		manager->uiThickness->action(glX, glY, manager);
+	} else if (action == GLFW_REPEAT && manager->uiFakeRaycast->isOnPanel(glX, glY)) {
+		manager->uiFakeRaycast->action(glX, glY, manager);
 	} else {
 		isOnAPanel = false;
 	}
@@ -506,7 +326,7 @@ void sceneHumanGL() {
 #ifndef FRAMEBUFFER
 
 	FrameBuffer		framebuffer(WINX, WINY);
-	FrameBuffer		framebufferUI(WINX, WINY);
+	FrameBuffer		framebufferUI(palette->getWidth(), palette->getHeight());
 	FrameBuffer		framebufferUI2(WINX, WINY);
 	FrameBuffer		framebufferUI3(WINX, WINY);
 	FrameBuffer		framebufferUI4(WINX, WINY);
@@ -535,30 +355,25 @@ void sceneHumanGL() {
 
 #ifndef UI_PANELS
 	int pad = 10;
-	UIPanel	uiSelect;
-	uiSelect.posX = 0;
-	uiSelect.posY = 0;
-	uiSelect.width = WINX / 4;
-	uiSelect.height = WINY / 4;
+	UIFakeRaycast	uiFakeRaycast(nullptr);
+	UIMemberColor	uiPalette(palette);
+	UIMemberLength	uiLength(bmpLength);
+	UIThickness		uiThickness(bmpThickness);
+	UIGlobalLength	uiGlobal(bmpGlobal);
+	UIAnimation		uiAnimButtons(bmpAnim);
 
-	UIPanel	uiPalette(palette);
-	uiPalette.posX = WINX - palette->getWidth();
+	uiFakeRaycast.setSize(WINX / 4, WINY / 4);
+	uiPalette.setPos(WINX - palette->getWidth(), 0);
+	uiPalette.setSize(uiPalette.texture->getWidth(), uiPalette.texture->getHeight());
+	uiLength.setPos(WINX - bmpLength->getWidth(), uiPalette.getHeight() + pad);
+	uiLength.setSize(uiLength.texture->getWidth(), uiLength.texture->getHeight());
+	uiThickness.setPos(WINX - bmpThickness->getWidth(), uiPalette.getHeight() + pad + uiLength.getHeight() + pad);
+	uiThickness.setSize(uiThickness.texture->getWidth(), uiThickness.texture->getHeight());
+	uiGlobal.setPos(WINX - bmpGlobal->getWidth(), uiPalette.getHeight() + pad + uiLength.getHeight() + pad + uiThickness.getHeight() + pad);
+	uiGlobal.setSize(uiGlobal.texture->getWidth(), uiGlobal.texture->getHeight());
+	uiAnimButtons.setPos((WINX / 2) - (bmpAnim->getWidth() / 2), WINY - bmpAnim->getHeight());
+	uiAnimButtons.setSize(uiAnimButtons.texture->getWidth(), uiAnimButtons.texture->getHeight());
 
-	UIPanel	uiLength(bmpLength);
-	uiLength.posX = WINX - bmpLength->getWidth();
-	uiLength.posY = uiPalette.height + pad;
-
-	UIPanel	uiThickness(bmpThickness);
-	uiThickness.posX = WINX - bmpThickness->getWidth();
-	uiThickness.posY = uiPalette.height + pad + uiLength.height + pad;
-
-	UIPanel	uiGlobal(bmpGlobal);
-	uiGlobal.posX = WINX - bmpGlobal->getWidth();
-	uiGlobal.posY = uiPalette.height + pad + uiLength.height + pad + uiThickness.height + pad;
-
-	UIPanel	uiAnimButtons(bmpAnim);
-	uiAnimButtons.posX = (WINX / 2) - (bmpAnim->getWidth() / 2);
-	uiAnimButtons.posY = WINY - bmpAnim->getHeight();
 #endif // UI_PANELS
 
 #ifndef GAMEMANAGER
@@ -576,7 +391,7 @@ void sceneHumanGL() {
 	gameManager.framebufferUI5 = &framebufferUI5;
 	gameManager.obj3dList = &raycastList;
 	
-	gameManager.uiSelect = &uiSelect;
+	gameManager.uiFakeRaycast = &uiFakeRaycast;
 	gameManager.uiPalette = &uiPalette;
 	gameManager.uiLength = &uiLength;
 	gameManager.uiAnimButtons = &uiAnimButtons;
@@ -662,7 +477,7 @@ void sceneHumanGL() {
 			renderSkybox(skybox, cam);
 
 		#ifndef FRAMEBUFFER_UI
-			blitToWindow(&gameManager, gameManager.framebuffer, GL_COLOR_ATTACHMENT0, gameManager.uiSelect);
+			blitToWindow(&gameManager, gameManager.framebuffer, GL_COLOR_ATTACHMENT0, gameManager.uiFakeRaycast);
 			blitToWindow(&gameManager, gameManager.framebufferUI, GL_COLOR_ATTACHMENT0, gameManager.uiPalette);
 			blitToWindow(&gameManager, gameManager.framebufferUI2, GL_COLOR_ATTACHMENT0, gameManager.uiLength);
 			blitToWindow(&gameManager, gameManager.framebufferUI3, GL_COLOR_ATTACHMENT0, gameManager.uiAnimButtons);
