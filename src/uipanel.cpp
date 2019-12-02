@@ -5,7 +5,8 @@
 
 void	init(UIPanel * panel) {
 	panel->isClickable = true;
-	panel->texture = nullptr;
+
+	panel->_texture = nullptr;
 	panel->_posX = 0;
 	panel->_posY = 0;
 	panel->_width = DEFAULT_SIZE;
@@ -15,22 +16,36 @@ void	init(UIPanel * panel) {
 }
 
 UIPanel::UIPanel() {
+	glGenFramebuffers(1, &this->_fbo);
 	init(this);
 }
 
 UIPanel::UIPanel(Texture * tex) {
+	glGenFramebuffers(1, &this->_fbo);
 	init(this);
+	this->setTexture(tex);
+}
+
+UIPanel::~UIPanel() {
+	glDeleteFramebuffers(1, &this->_fbo);
+}
+
+bool		UIPanel::isOnPanel(int glX, int glY) const {
+	return (glX >= this->_posX && glX <= this->_posX2 && glY >= this->_posY && glY <= this->_posY2);
+}
+
+void		UIPanel::setTexture(Texture * tex) {
 	if (tex) {
-		this->texture = tex;
+		this->_texture = tex;
 		this->setSize(tex->getWidth(), tex->getHeight());
+		// attach
+		std::cout << "UIPanel : attach : " << this->_fbo << " | " << this->_texture->getId() << std::endl;
+		glBindFramebuffer(GL_FRAMEBUFFER, this->_fbo);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,	this->_texture->getId(), 0);// mipmap level: 0(base)
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	}
 }
 
-UIPanel::~UIPanel() {}
-
-bool	UIPanel::isOnPanel(int glX, int glY) const {
-	return (glX >= this->_posX && glX <= this->_posX2 && glY >= this->_posY && glY <= this->_posY2);
-}
 
 void		UIPanel::setPos(int glX, int glY) {
 	this->_posX = glX;
@@ -53,6 +68,8 @@ void		UIPanel::setSize(int width, int height) {
 
 int			UIPanel::getWidth() const { return this->_width; }
 int			UIPanel::getHeight() const { return this->_height; }
+GLuint		UIPanel::getFbo() const { return this->_fbo; };
+Texture *	UIPanel::getTexture() const { return this->_texture; };
 
 ///////////////////////////////////////////////////////////////////////////
 UIMemberColor::UIMemberColor(Texture * tex) : UIPanel(tex) {}

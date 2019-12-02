@@ -15,6 +15,7 @@ public:
 			bool	isOnPanel(int glX, int glY) const;
 	virtual	void	action(int glX, int glY, HumanManager * manager) = 0;
 
+	void		setTexture(Texture * tex);
 	//undefined behaviors if positions are fucked up (neg pos, pos2 < pos, neg size)
 	void		setPos(int glX, int glY);
 	void		setPos2(int glX, int glY);
@@ -22,11 +23,13 @@ public:
 
 	int			getWidth() const;
 	int			getHeight() const;
+	GLuint		getFbo() const;
+	Texture *	getTexture() const;
 
 	bool		isClickable;
-	Texture *	texture;
 protected:
-	// FrameBuffer	framebuffer;
+	GLuint		_fbo;
+	Texture *	_texture;
 	int			_posX;
 	int			_posY;
 	int			_width;

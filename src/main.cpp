@@ -6,7 +6,7 @@
 /*   By: rhoffsch <rhoffsch@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/09/18 22:45:30 by rhoffsch          #+#    #+#             */
-/*   Updated: 2019/11/29 18:29:22 by rhoffsch         ###   ########.fr       */
+/*   Updated: 2019/12/02 14:34:06 by rhoffsch         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,9 +33,15 @@
 using json = nlohmann::json;
 
 void blitToWindow(HumanManager * manager, FrameBuffer * readFramebuffer, GLenum attachmentPoint, UIPanel *panel) {
+	GLuint fbo;
+	if (readFramebuffer) {
+		fbo = readFramebuffer->fbo;
+	} else {
+		fbo = panel->getFbo();
+	}
 	// glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-	glBindFramebuffer(GL_READ_FRAMEBUFFER, readFramebuffer->fbo);
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, fbo);
 
 	(void)manager;
 	//glViewport(0, 0, manager->glfw->getWidth(), manager->glfw->getHeight());//size of the window/image or panel width ?
@@ -45,12 +51,15 @@ void blitToWindow(HumanManager * manager, FrameBuffer * readFramebuffer, GLenum 
 
 	int w;
 	int h;
-	if (panel->texture) {
-		w = panel->texture->getWidth();
-		h = panel->texture->getHeight();
-	} else {
+	if (readFramebuffer) {
 		w = readFramebuffer->getWidth();
 		h = readFramebuffer->getHeight();
+	} else if (panel->getTexture()) {
+		w = panel->getTexture()->getWidth();
+		h = panel->getTexture()->getHeight();
+	} else {
+		std::cout << "FUCK " << __PRETTY_FUNCTION__ << std::endl;
+		exit(2);
 	}
 	if (0) {
 		std::cout << "copy " << w << "x" << h << "\tresized\t" << panel->_width << "x" << panel->_height \
@@ -322,34 +331,11 @@ void sceneHumanGL() {
 	cam.lockedOrientation = false;
 #endif
 
-#define FB_N 6
 #ifndef FRAMEBUFFER
-
 	FrameBuffer		framebuffer(WINX, WINY);
-	FrameBuffer		framebufferUI(palette->getWidth(), palette->getHeight());
-	FrameBuffer		framebufferUI2(WINX, WINY);
-	FrameBuffer		framebufferUI3(WINX, WINY);
-	FrameBuffer		framebufferUI4(WINX, WINY);
-	FrameBuffer		framebufferUI5(WINX, WINY);
-	FrameBuffer*	fbs[FB_N] = {&framebuffer, &framebufferUI, &framebufferUI2, &framebufferUI3, &framebufferUI4, &framebufferUI5};
-	
-	glBindFramebuffer(GL_READ_FRAMEBUFFER, framebufferUI.fbo);
-	glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, palette->getId(), 0);// mipmap level: 0(base)
-	glBindFramebuffer(GL_READ_FRAMEBUFFER, framebufferUI2.fbo);
-	glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, bmpLength->getId(), 0);// mipmap level: 0(base)
-	glBindFramebuffer(GL_READ_FRAMEBUFFER, framebufferUI3.fbo);
-	glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, bmpAnim->getId(), 0);// mipmap level: 0(base)
-	glBindFramebuffer(GL_READ_FRAMEBUFFER, framebufferUI4.fbo);
-	glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, bmpGlobal->getId(), 0);// mipmap level: 0(base)
-	glBindFramebuffer(GL_READ_FRAMEBUFFER, framebufferUI5.fbo);
-	glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, bmpThickness->getId(), 0);// mipmap level: 0(base)
-	glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
-
-	for (size_t i = 0; i < FB_N; i++) {
-		if (framebuffer.fboStatus != GL_FRAMEBUFFER_COMPLETE) {
-			std::cout << "FrameBuffer() failed : " << FrameBuffer::getFramebufferStatusInfos(fbs[i]->fboStatus) << std::endl;
-			return ;
-		}
+	if (framebuffer.fboStatus != GL_FRAMEBUFFER_COMPLETE) {
+		std::cout << "FrameBuffer() failed : " << FrameBuffer::getFramebufferStatusInfos(framebuffer.fboStatus) << std::endl;
+		return ;
 	}
 #endif
 
@@ -364,15 +350,15 @@ void sceneHumanGL() {
 
 	uiFakeRaycast.setSize(WINX / 4, WINY / 4);
 	uiPalette.setPos(WINX - palette->getWidth(), 0);
-	uiPalette.setSize(uiPalette.texture->getWidth(), uiPalette.texture->getHeight());
+	uiPalette.setSize(uiPalette.getTexture()->getWidth(), uiPalette.getTexture()->getHeight());
 	uiLength.setPos(WINX - bmpLength->getWidth(), uiPalette.getHeight() + pad);
-	uiLength.setSize(uiLength.texture->getWidth(), uiLength.texture->getHeight());
+	uiLength.setSize(uiLength.getTexture()->getWidth(), uiLength.getTexture()->getHeight());
 	uiThickness.setPos(WINX - bmpThickness->getWidth(), uiPalette.getHeight() + pad + uiLength.getHeight() + pad);
-	uiThickness.setSize(uiThickness.texture->getWidth(), uiThickness.texture->getHeight());
+	uiThickness.setSize(uiThickness.getTexture()->getWidth(), uiThickness.getTexture()->getHeight());
 	uiGlobal.setPos(WINX - bmpGlobal->getWidth(), uiPalette.getHeight() + pad + uiLength.getHeight() + pad + uiThickness.getHeight() + pad);
-	uiGlobal.setSize(uiGlobal.texture->getWidth(), uiGlobal.texture->getHeight());
+	uiGlobal.setSize(uiGlobal.getTexture()->getWidth(), uiGlobal.getTexture()->getHeight());
 	uiAnimButtons.setPos((WINX / 2) - (bmpAnim->getWidth() / 2), WINY - bmpAnim->getHeight());
-	uiAnimButtons.setSize(uiAnimButtons.texture->getWidth(), uiAnimButtons.texture->getHeight());
+	uiAnimButtons.setSize(uiAnimButtons.getTexture()->getWidth(), uiAnimButtons.getTexture()->getHeight());
 
 #endif // UI_PANELS
 
@@ -381,16 +367,11 @@ void sceneHumanGL() {
 	gameManager.glfw = &glfw;
 	gameManager.cam = &cam;
 	gameManager.defaultFps = &fps60;
-	
+
 	gameManager.human = bob;
 	gameManager.framebuffer = &framebuffer;
-	gameManager.framebufferUI = &framebufferUI;
-	gameManager.framebufferUI2 = &framebufferUI2;
-	gameManager.framebufferUI3 = &framebufferUI3;
-	gameManager.framebufferUI4 = &framebufferUI4;
-	gameManager.framebufferUI5 = &framebufferUI5;
 	gameManager.obj3dList = &raycastList;
-	
+
 	gameManager.uiFakeRaycast = &uiFakeRaycast;
 	gameManager.uiPalette = &uiPalette;
 	gameManager.uiLength = &uiLength;
@@ -426,6 +407,35 @@ void sceneHumanGL() {
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+
+// #define FB_TESTS
+#ifdef FB_TESTS
+	#define TEXN 3
+	#define TEXN_DRAW 3
+	int size = 150;
+	int pos[5][2] = {	{ (size+pad)*0+pad, pad},
+						{ (size+pad)*1+pad, pad},
+						{ (size+pad)*2+pad, pad},
+						{ (size+pad)*3+pad, pad},
+						{ (size+pad)*4+pad, pad}	};
+	Texture * texs[] = {bmpLength, bmpGlobal, bmpThickness, bmpAnim, palette };
+	GLuint	texId[] = {bmpLength->getId(), bmpGlobal->getId(), bmpThickness->getId(), bmpAnim->getId(), palette->getId()};
+	
+	GLuint			fboTex;
+	glGenFramebuffers(1, &fboTex);
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, fboTex);
+	for (int i = 0; i < TEXN; i++) {
+		glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, texs[i]->getId(), 0);// mipmap level: 0(base)
+	}
+	GLenum status = glCheckFramebufferStatus(GL_READ_FRAMEBUFFER);
+	if (status != GL_FRAMEBUFFER_COMPLETE) {
+		std::cout << "FrameBuffer() failed : " << FrameBuffer::getFramebufferStatusInfos(status) << std::endl;
+		return ;
+	}
+
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+#endif //FB_TESTS
 
 	while (!glfwWindowShouldClose(glfw._window)) {
 		if (defaultFps->wait_for_next_frame()) {
@@ -478,11 +488,36 @@ void sceneHumanGL() {
 
 		#ifndef FRAMEBUFFER_UI
 			blitToWindow(&gameManager, gameManager.framebuffer, GL_COLOR_ATTACHMENT0, gameManager.uiFakeRaycast);
-			blitToWindow(&gameManager, gameManager.framebufferUI, GL_COLOR_ATTACHMENT0, gameManager.uiPalette);
-			blitToWindow(&gameManager, gameManager.framebufferUI2, GL_COLOR_ATTACHMENT0, gameManager.uiLength);
-			blitToWindow(&gameManager, gameManager.framebufferUI3, GL_COLOR_ATTACHMENT0, gameManager.uiAnimButtons);
-			blitToWindow(&gameManager, gameManager.framebufferUI4, GL_COLOR_ATTACHMENT0, gameManager.uiGlobal);
-			blitToWindow(&gameManager, gameManager.framebufferUI5, GL_COLOR_ATTACHMENT0, gameManager.uiThickness);
+			blitToWindow(&gameManager, nullptr, GL_COLOR_ATTACHMENT0, gameManager.uiPalette);
+			blitToWindow(&gameManager, nullptr, GL_COLOR_ATTACHMENT0, gameManager.uiLength);
+			blitToWindow(&gameManager, nullptr, GL_COLOR_ATTACHMENT0, gameManager.uiAnimButtons);
+			blitToWindow(&gameManager, nullptr, GL_COLOR_ATTACHMENT0, gameManager.uiGlobal);
+			blitToWindow(&gameManager, nullptr, GL_COLOR_ATTACHMENT0, gameManager.uiThickness);
+
+			#ifdef FB_TESTS
+				if (1) {
+					glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+					glBindFramebuffer(GL_READ_FRAMEBUFFER, fboTex);
+					GLenum drawBuffers[1] = {GL_COLOR_ATTACHMENT0};
+					glDrawBuffers(1, drawBuffers);
+					for (int i = 0; i < TEXN_DRAW; i++) {
+						int w = texs[i]->getWidth();
+						int h = texs[i]->getHeight();
+						int x0 = pos[i][0];
+						int y0 = pos[i][1];
+						int x1 = x0 + size;
+						int y1 = y0 + size;
+						(void)size;
+
+						glReadBuffer(GL_COLOR_ATTACHMENT0 + i);
+						glBlitFramebuffer(0, 0, w, h, \
+						x0, y0, x1, y1, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+						std::cout << "copy " << w << "x" << h << "\tresized\t" << size << "x" << size \
+							<< "\tat pos\t" << x0 << ":" << y0 << std::endl;
+					}std::cout << std::endl;
+					glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+				}
+			#endif //FB_TESTS
 		#endif //FRAMEBUFFER_UI
 
 			glfwSwapBuffers(glfw._window);

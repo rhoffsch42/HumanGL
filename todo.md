@@ -3,8 +3,8 @@ HUMANGL:
 - [X] refacto system de scale, utiliser directement les containers et le system de parenté, cest fait pour ça!
 - [ ] bug random si on change le obj3d bp
 - [X] bug Texture: biSizeImage = 0
-- [ ] Quand on cree un framebuffer, il gen une texture. Ce n'est pas forcement ce que l'on veut. Par exemple pour les UIPanel on cree un FB et on override le GL_COLOR_ATTACHMENT0. Il faudrait donc delete la texture OpenGL et remplacer le texId par la nouvelle texture.
-	L'ideal est d'avoir un seul FB pour les textures offscreen sur les different attachment, avoir un ptr FB dans UIPanel + un Glenum attachment. (attetntion a attachment max 8 sur nos mac, ptetre une option à activer pour en avoir +)
+- [X] Quand on cree un framebuffer, il gen une texture. Ce n'est pas forcement ce que l'on veut. Par exemple pour les UIPanel on cree un FB et on override le GL_COLOR_ATTACHMENT0. Il faudrait donc delete la texture OpenGL et remplacer le texId par la nouvelle texture.
+	L'ideal est d'avoir un seul FB pour les textures offscreen sur les different attachment (elles DOIVENT avoir les memes dimensions), avoir un ptr FB dans UIPanel + un Glenum attachment. (attetntion a attachment max 8 sur nos mac, ptetre une option à activer pour en avoir +)
 
 MISC:
 - [ ] make a logfile manager

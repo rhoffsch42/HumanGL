@@ -20,11 +20,6 @@ public:
 
 		this->human = nullptr;
 		this->framebuffer = nullptr;
-		this->framebufferUI = nullptr;
-		this->framebufferUI2 = nullptr;
-		this->framebufferUI3 = nullptr;
-		this->framebufferUI4 = nullptr;
-		this->framebufferUI5 = nullptr;
 		this->uiPalette = nullptr;
 		this->uiLength = nullptr;
 		this->uiFakeRaycast = nullptr;
@@ -43,11 +38,6 @@ public:
 
 	Human *			human;
 	FrameBuffer *	framebuffer;
-	FrameBuffer *	framebufferUI;
-	FrameBuffer *	framebufferUI2;
-	FrameBuffer *	framebufferUI3;
-	FrameBuffer *	framebufferUI4;
-	FrameBuffer *	framebufferUI5;
 	UIPanel *		uiPalette;
 	UIPanel *		uiLength;
 	UIPanel *		uiFakeRaycast;
