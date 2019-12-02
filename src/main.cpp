@@ -6,7 +6,7 @@
 /*   By: rhoffsch <rhoffsch@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/09/18 22:45:30 by rhoffsch          #+#    #+#             */
-/*   Updated: 2019/12/02 14:34:06 by rhoffsch         ###   ########.fr       */
+/*   Updated: 2019/12/02 15:49:23 by rhoffsch         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -117,24 +117,24 @@ static void	getObjectOnClic(int glX, int glY, HumanManager * manager, bool reset
 	//restore window-system-provided framebuffer
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
-
 static bool	UIPanelActions(int glX, int glY, HumanManager * manager, GLenum action) {
 	bool	isOnAPanel = true;
 	if (action == GLFW_PRESS && manager->uiPalette->isOnPanel(glX, glY)) {
-		manager->uiPalette->action(glX, glY, manager);// transform it: panel->action(x, y, manager); // void	UIPanel::action(...) = 0; or func ptr
+		manager->uiPalette->action(glX, glY, manager);
 	} else if (action == GLFW_PRESS && manager->uiAnimButtons->isOnPanel(glX, glY)) {
 		manager->uiAnimButtons->action(glX, glY, manager);
-	} else if (action == GLFW_REPEAT && manager->uiLength->isOnPanel(glX, glY)) {
+	} else if ((action == GLFW_REPEAT || action == GLFW_PRESS) && manager->uiLength->isOnPanel(glX, glY)) {
 		manager->uiLength->action(glX, glY, manager);
-	} else if (action == GLFW_REPEAT && manager->uiGlobal->isOnPanel(glX, glY)) {
+	} else if ((action == GLFW_REPEAT || action == GLFW_PRESS) && manager->uiGlobal->isOnPanel(glX, glY)) {
 		manager->uiGlobal->action(glX, glY, manager);
-	} else if (action == GLFW_REPEAT && manager->uiThickness->isOnPanel(glX, glY)) {
+	} else if ((action == GLFW_REPEAT || action == GLFW_PRESS) && manager->uiThickness->isOnPanel(glX, glY)) {
 		manager->uiThickness->action(glX, glY, manager);
-	} else if (action == GLFW_REPEAT && manager->uiFakeRaycast->isOnPanel(glX, glY)) {
+	} else if ((action == GLFW_REPEAT || action == GLFW_PRESS) && manager->uiFakeRaycast->isOnPanel(glX, glY)) {
 		manager->uiFakeRaycast->action(glX, glY, manager);
 	} else {
 		isOnAPanel = false;
 	}
+	std::cout << "isOneAPanel" << (isOnAPanel ? "true" : "false") << std::endl;
 	return isOnAPanel;
 }
 void	HumanMouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
@@ -341,22 +341,27 @@ void sceneHumanGL() {
 
 #ifndef UI_PANELS
 	int pad = 10;
-	UIFakeRaycast	uiFakeRaycast(nullptr);
-	UIMemberColor	uiPalette(palette);
-	UIMemberLength	uiLength(bmpLength);
-	UIThickness		uiThickness(bmpThickness);
-	UIGlobalLength	uiGlobal(bmpGlobal);
-	UIAnimation		uiAnimButtons(bmpAnim);
 
+	UIFakeRaycast	uiFakeRaycast(nullptr);
 	uiFakeRaycast.setSize(WINX / 4, WINY / 4);
+
+	UIMemberColor	uiPalette(palette);
 	uiPalette.setPos(WINX - palette->getWidth(), 0);
 	uiPalette.setSize(uiPalette.getTexture()->getWidth(), uiPalette.getTexture()->getHeight());
+
+	UIMemberLength	uiLength(bmpLength);
 	uiLength.setPos(WINX - bmpLength->getWidth(), uiPalette.getHeight() + pad);
 	uiLength.setSize(uiLength.getTexture()->getWidth(), uiLength.getTexture()->getHeight());
+
+	UIThickness		uiThickness(bmpThickness);
 	uiThickness.setPos(WINX - bmpThickness->getWidth(), uiPalette.getHeight() + pad + uiLength.getHeight() + pad);
 	uiThickness.setSize(uiThickness.getTexture()->getWidth(), uiThickness.getTexture()->getHeight());
+
+	UIGlobalLength	uiGlobal(bmpGlobal);
 	uiGlobal.setPos(WINX - bmpGlobal->getWidth(), uiPalette.getHeight() + pad + uiLength.getHeight() + pad + uiThickness.getHeight() + pad);
 	uiGlobal.setSize(uiGlobal.getTexture()->getWidth(), uiGlobal.getTexture()->getHeight());
+	
+	UIAnimation		uiAnimButtons(bmpAnim);
 	uiAnimButtons.setPos((WINX / 2) - (bmpAnim->getWidth() / 2), WINY - bmpAnim->getHeight());
 	uiAnimButtons.setSize(uiAnimButtons.getTexture()->getWidth(), uiAnimButtons.getTexture()->getHeight());
 
@@ -408,34 +413,6 @@ void sceneHumanGL() {
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 
-// #define FB_TESTS
-#ifdef FB_TESTS
-	#define TEXN 3
-	#define TEXN_DRAW 3
-	int size = 150;
-	int pos[5][2] = {	{ (size+pad)*0+pad, pad},
-						{ (size+pad)*1+pad, pad},
-						{ (size+pad)*2+pad, pad},
-						{ (size+pad)*3+pad, pad},
-						{ (size+pad)*4+pad, pad}	};
-	Texture * texs[] = {bmpLength, bmpGlobal, bmpThickness, bmpAnim, palette };
-	GLuint	texId[] = {bmpLength->getId(), bmpGlobal->getId(), bmpThickness->getId(), bmpAnim->getId(), palette->getId()};
-	
-	GLuint			fboTex;
-	glGenFramebuffers(1, &fboTex);
-	glBindFramebuffer(GL_READ_FRAMEBUFFER, fboTex);
-	for (int i = 0; i < TEXN; i++) {
-		glFramebufferTexture2D(GL_READ_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, texs[i]->getId(), 0);// mipmap level: 0(base)
-	}
-	GLenum status = glCheckFramebufferStatus(GL_READ_FRAMEBUFFER);
-	if (status != GL_FRAMEBUFFER_COMPLETE) {
-		std::cout << "FrameBuffer() failed : " << FrameBuffer::getFramebufferStatusInfos(status) << std::endl;
-		return ;
-	}
-
-	glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-#endif //FB_TESTS
 
 	while (!glfwWindowShouldClose(glfw._window)) {
 		if (defaultFps->wait_for_next_frame()) {
@@ -494,30 +471,7 @@ void sceneHumanGL() {
 			blitToWindow(&gameManager, nullptr, GL_COLOR_ATTACHMENT0, gameManager.uiGlobal);
 			blitToWindow(&gameManager, nullptr, GL_COLOR_ATTACHMENT0, gameManager.uiThickness);
 
-			#ifdef FB_TESTS
-				if (1) {
-					glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-					glBindFramebuffer(GL_READ_FRAMEBUFFER, fboTex);
-					GLenum drawBuffers[1] = {GL_COLOR_ATTACHMENT0};
-					glDrawBuffers(1, drawBuffers);
-					for (int i = 0; i < TEXN_DRAW; i++) {
-						int w = texs[i]->getWidth();
-						int h = texs[i]->getHeight();
-						int x0 = pos[i][0];
-						int y0 = pos[i][1];
-						int x1 = x0 + size;
-						int y1 = y0 + size;
-						(void)size;
 
-						glReadBuffer(GL_COLOR_ATTACHMENT0 + i);
-						glBlitFramebuffer(0, 0, w, h, \
-						x0, y0, x1, y1, GL_COLOR_BUFFER_BIT, GL_NEAREST);
-						std::cout << "copy " << w << "x" << h << "\tresized\t" << size << "x" << size \
-							<< "\tat pos\t" << x0 << ":" << y0 << std::endl;
-					}std::cout << std::endl;
-					glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
-				}
-			#endif //FB_TESTS
 		#endif //FRAMEBUFFER_UI
 
 			glfwSwapBuffers(glfw._window);
@@ -527,27 +481,6 @@ void sceneHumanGL() {
 	}
 #endif // RENDER
 }
-
-// #define OFFSETCLASS
-#ifdef OFFSETCLASS
-	void	offsetClass() {
-		//remove CFLAGS before compiling
-		std::cout << offsetof(GameManager, glfw) << std::endl;
-		std::cout << offsetof(GameManager, currentSelection) << std::endl;
-		std::cout << offsetof(GameManager, objectList) << std::endl;
-		std::cout << offsetof(GameManager, cam) << std::endl;
-
-		std::cout << offsetof(HumanManager, glfw) << std::endl;
-		std::cout << offsetof(HumanManager, currentSelection) << std::endl;
-		std::cout << offsetof(HumanManager, objectList) << std::endl;
-		std::cout << offsetof(HumanManager, cam) << std::endl;
-		std::cout << offsetof(HumanManager, obj3dList) << std::endl;
-		std::cout << offsetof(HumanManager, human) << std::endl;
-		std::cout << offsetof(HumanManager, fb) << std::endl;
-
-		exit(0);
-	}
-#endif
 
 int		main(void) {
 	std::cout << "____START____" << endl;
