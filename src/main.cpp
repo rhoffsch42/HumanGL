@@ -6,7 +6,7 @@
 /*   By: rhoffsch <rhoffsch@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2018/09/18 22:45:30 by rhoffsch          #+#    #+#             */
-/*   Updated: 2019/12/02 15:49:23 by rhoffsch         ###   ########.fr       */
+/*   Updated: 2019/12/04 14:09:26 by rhoffsch         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -360,7 +360,7 @@ void sceneHumanGL() {
 	UIGlobalLength	uiGlobal(bmpGlobal);
 	uiGlobal.setPos(WINX - bmpGlobal->getWidth(), uiPalette.getHeight() + pad + uiLength.getHeight() + pad + uiThickness.getHeight() + pad);
 	uiGlobal.setSize(uiGlobal.getTexture()->getWidth(), uiGlobal.getTexture()->getHeight());
-	
+
 	UIAnimation		uiAnimButtons(bmpAnim);
 	uiAnimButtons.setPos((WINX / 2) - (bmpAnim->getWidth() / 2), WINY - bmpAnim->getHeight());
 	uiAnimButtons.setSize(uiAnimButtons.getTexture()->getWidth(), uiAnimButtons.getTexture()->getHeight());
@@ -413,10 +413,10 @@ void sceneHumanGL() {
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 
-
 	while (!glfwWindowShouldClose(glfw._window)) {
 		if (defaultFps->wait_for_next_frame()) {
 			// Fps::printGlobalFps();
+
 
 			if (gameManager.currentAnimation && !gameManager.animationPaused)
 				gameManager.currentAnimation->run();

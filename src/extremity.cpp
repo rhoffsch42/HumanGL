@@ -36,6 +36,26 @@ finger5(blueprint, program)
 	this->finger5.model.setColor(FINGER_COLOR);
 }
 
+Extremity::Extremity(const Extremity & src)
+: base(src.base.model.getBlueprint(), src.base.model.getProgram()), \
+finger1(src.finger1.model.getBlueprint(), src.finger1.model.getProgram()), \
+finger2(src.finger2.model.getBlueprint(), src.finger2.model.getProgram()), \
+finger3(src.finger3.model.getBlueprint(), src.finger3.model.getProgram()), \
+finger4(src.finger4.model.getBlueprint(), src.finger4.model.getProgram()), \
+finger5(src.finger5.model.getBlueprint(), src.finger5.model.getProgram())
+{
+	*this = src;
+}
+Extremity &		Extremity::operator=(const Extremity & src) {
+	this->base = src.base;
+	this->finger1 = src.finger1;
+	this->finger2 = src.finger2;
+	this->finger3 = src.finger3;
+	this->finger4 = src.finger4;
+	this->finger5 = src.finger5;
+	return *this;
+}
+
 Extremity::~Extremity() {
 }
 

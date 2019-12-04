@@ -1,7 +1,7 @@
 #include "animationbh.hpp"
 #include <math.h>
 
-IAnimationBH::IAnimationBH(const std::string & filename) {
+AAnimationBH::AAnimationBH(const std::string & filename) {
 	this->_filename = filename;
 	this->_currentFrame = 0;
 	this->_fpsTick = -1;
@@ -26,7 +26,30 @@ IAnimationBH::IAnimationBH(const std::string & filename) {
 	*/
 }
 
-IAnimationBH::~IAnimationBH() {
+AAnimationBH::AAnimationBH(const AAnimationBH & src) {
+	*this = src;
+}
+
+AAnimationBH &	AAnimationBH::operator=(const AAnimationBH & src) {
+	this->isActive = true;
+	this->targetList.clear();
+
+	this->jsonData = src.jsonData;
+	this->loop = src.loop;
+	this->currentLoop = src.currentLoop;
+	this->finished = src.finished;
+	this->_fpsTick = src._fpsTick;
+	this->_filename = src._filename;
+	this->_frameMax = src._frameMax;
+	this->_currentFrame = src._currentFrame;
+	this->_frame = src._frame;
+	this->_stepMax = src._frameMax;
+	this->_step = src._step;
+	this->_speed = src._speed;
+	return *this;
+}
+
+AAnimationBH::~AAnimationBH() {
 }
 
 static Math::Rotation		getRotationDelta(json & jsonData, std::string key, std::string frame, std::string nextf, unsigned int stepMax, bool lastFrame) {
@@ -59,7 +82,7 @@ static Math::Rotation		getRotationDelta(json & jsonData, std::string key, std::s
 	return r2;
 }
 
-void		IAnimationBH::generateRotationsDelta() {
+void		AAnimationBH::generateRotationsDelta() {
 	std::string nextFrame = std::string("frame") + std::to_string((this->_currentFrame) % this->_frameMax + 1);
 	for (auto it = this->jsonData[this->_frame].begin(); it != this->jsonData[this->_frame].end(); ++it) {
 		// std::cout << it.key() << " | " << it.value() << "\n";
@@ -76,7 +99,7 @@ void		IAnimationBH::generateRotationsDelta() {
 }
 
 
-void		IAnimationBH::behaveOnTarget(BehaviorManaged *target) {
+void		AAnimationBH::behaveOnTarget(BehaviorManaged *target) {
 	if (this->finished)
 		return ;
 	if (this->_fpsTick == -1) {
@@ -112,11 +135,11 @@ void		IAnimationBH::behaveOnTarget(BehaviorManaged *target) {
 	} else { this->finished = true; }//end of animation
 }
 
-bool		IAnimationBH::isCompatible(BehaviorManaged* target) const {
+bool		AAnimationBH::isCompatible(BehaviorManaged* target) const {
 	return (dynamic_cast<Human*>(target));
 }
 
-void		IAnimationBH::setSpeed(float speed) {
+void		AAnimationBH::setSpeed(float speed) {
 	if (speed >= 0.1f && speed <= 5.0f)
 		this->_speed = speed;
 	else
@@ -124,7 +147,7 @@ void		IAnimationBH::setSpeed(float speed) {
 }
 
 
-void		IAnimationBH::setFpsTick(float tick) {
+void		AAnimationBH::setFpsTick(float tick) {
 	if (tick <= 0) {
 		std::cout << __PRETTY_FUNCTION__ << " : Error : fps tick too low : " << tick << std::endl;
 	} else {
@@ -132,11 +155,11 @@ void		IAnimationBH::setFpsTick(float tick) {
 	}
 }
 
-void		IAnimationBH::reset() {
+void		AAnimationBH::reset() {
 	this->_currentFrame = 0;
 	this->currentLoop = 0;
 	this->_step = 0;
 	this->finished = false;
 }
 
-std::string	IAnimationBH::getFilename() const { return this->_filename; }
+std::string	AAnimationBH::getFilename() const { return this->_filename; }

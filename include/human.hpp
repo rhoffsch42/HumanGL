@@ -14,8 +14,21 @@ public:
 		this->model.setParent(this);
 		this->updateAnchor();
 	}
+	BodyPart(const BodyPart & src) : model(src.model.getBlueprint(), src.model.getProgram()) {
+		*this = src;
+	}
+	BodyPart &	operator=(const BodyPart & src) {
+		std::cout << __PRETTY_FUNCTION__ << std::endl;
+		this->model = src.model;
+		this->model.setParent(this);
+		this->anchor = src.anchor;
+		this->updateAnchor();
+		return (*this);
+	}
+	
 	Obj3d			model;
 	Math::Vector3	anchor;
+
 	void			updateAnchor(void) {
 		// std::cout << __PRETTY_FUNCTION__ << std::endl;
 		BodyPart *	parent = dynamic_cast<BodyPart*>(this->model.getParent());
@@ -35,7 +48,7 @@ class Human : public Object
 {
 public:
 					Human(Obj3dBP & blueprint, Obj3dPG & program, float thickness = 1.0f, float lenght = 4.0f);
-					// Human(const Human & src);//FIX see .cpp
+					Human(const Human & src);//FIX see .cpp
 	virtual Human &	operator=(const Human & src);
 	virtual			~Human();
 	std::string		getKeyFrame() const;
@@ -72,4 +85,6 @@ protected:
 
 	std::list<Obj3d*>	_objList;
 
+	void				buildHierarchy();
+	void				buildObjList();
 };

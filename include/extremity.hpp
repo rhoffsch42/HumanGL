@@ -9,6 +9,8 @@ class Extremity : public Object
 {
 public:
 	Extremity(Obj3dBP & blueprint, Obj3dPG & program);
+	Extremity(const Extremity & src);
+	Extremity &		operator=(const Extremity & src);
 	~Extremity();
 	
 	//list de finger qu'on peut changer ? faire des mains avec 8 doigts! 

@@ -58,10 +58,18 @@ using json = nlohmann::json;
 	the key "time" is reserved for the keyframe duration, do not use it for members
 	the key "pos" is reserved for the relative position, do not use it for members
 */
-class IAnimationBH : public Behavior {
+class AAnimationBH : public Behavior {
 public:
-	IAnimationBH(const std::string & filename);
-	virtual ~IAnimationBH();
+	AAnimationBH(const std::string & filename);
+	AAnimationBH(const AAnimationBH & src);
+
+	/*
+		targetList is cleared
+		does not call Behavior::operator=    (for now)
+	*/
+	AAnimationBH &	operator=(const AAnimationBH & src);
+
+	virtual ~AAnimationBH();
 
 	void		behaveOnTarget(BehaviorManaged *target);
 	bool		isCompatible(BehaviorManaged *target) const;
@@ -94,9 +102,11 @@ protected:
 };
 
 
-class AnimationHumanBH : public IAnimationBH {
+class AnimationHumanBH : public AAnimationBH {
 public:
-	AnimationHumanBH(const std::string & filename) : IAnimationBH(filename) {}
+	AnimationHumanBH(const std::string & filename) : AAnimationBH(filename) {}
+	AnimationHumanBH(const AnimationHumanBH & src) : AAnimationBH(src) {}
+
 	~AnimationHumanBH() {}
 private:
 	void			applyFrameToTarget(BehaviorManaged *target) {

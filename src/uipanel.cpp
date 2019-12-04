@@ -5,8 +5,8 @@
 
 void	init(UIPanel * panel) {
 	panel->isClickable = true;
-
 	panel->_texture = nullptr;
+
 	panel->_posX = 0;
 	panel->_posY = 0;
 	panel->_width = DEFAULT_SIZE;
@@ -23,8 +23,30 @@ UIPanel::UIPanel() {
 UIPanel::UIPanel(Texture * tex) {
 	glGenFramebuffers(1, &this->_fbo);
 	init(this);
-	this->setTexture(tex);
+	if (tex) {
+		this->setTexture(tex);
+		this->setSize(tex->getWidth(), tex->getHeight());
+	}
 }
+
+UIPanel::UIPanel(const UIPanel & src) {
+	*this = src;
+}
+
+UIPanel &	UIPanel::operator=(const UIPanel & src) {
+	std::cout << __PRETTY_FUNCTION__ << std::endl;
+	this->isClickable = src.isClickable;
+	glGenFramebuffers(1, &this->_fbo);
+	this->setTexture(src._texture);
+	this->_posX = src._posX;
+	this->_posY = src._posY;
+	this->_width = src._width;
+	this->_height = src._height;
+	this->_posX2 = src._posX2;
+	this->_posY2 = src._posY2;
+	return (*this);
+}
+
 
 UIPanel::~UIPanel() {
 	glDeleteFramebuffers(1, &this->_fbo);
@@ -35,9 +57,8 @@ bool		UIPanel::isOnPanel(int glX, int glY) const {
 }
 
 void		UIPanel::setTexture(Texture * tex) {
+	this->_texture = tex;
 	if (tex) {
-		this->_texture = tex;
-		this->setSize(tex->getWidth(), tex->getHeight());
 		// attach
 		std::cout << "UIPanel : attach : " << this->_fbo << " | " << this->_texture->getId() << std::endl;
 		glBindFramebuffer(GL_FRAMEBUFFER, this->_fbo);
@@ -73,6 +94,8 @@ Texture *	UIPanel::getTexture() const { return this->_texture; };
 
 ///////////////////////////////////////////////////////////////////////////
 UIMemberColor::UIMemberColor(Texture * tex) : UIPanel(tex) {}
+UIMemberColor::UIMemberColor(const UIPanel & src) : UIPanel(src) {}
+
 void	UIMemberColor::action(int glX, int glY, HumanManager * manager) {
 	// std::cout << __PRETTY_FUNCTION__ << std::endl;
 	if (!manager->currentSelection) {
@@ -91,6 +114,8 @@ void	UIMemberColor::action(int glX, int glY, HumanManager * manager) {
 #include "math.hpp"
 #define MAX_ANIM 6 // 5 animations + 1 for nullptr (pause)
 UIAnimation::UIAnimation(Texture * tex) : UIPanel(tex) {}
+UIAnimation::UIAnimation(const UIPanel & src) : UIPanel(src) {}
+
 void	UIAnimation::action(int glX, int glY, HumanManager * manager) {
 	(void)glY;
 	// std::cout << __PRETTY_FUNCTION__ << std::endl;
@@ -114,6 +139,8 @@ void	UIAnimation::action(int glX, int glY, HumanManager * manager) {
 #define HUMAN_EVOLVED	1
 #define SUPERSAIYAN1	2
 UIMemberLength::UIMemberLength(Texture * tex) : UIPanel(tex) {}
+UIMemberLength::UIMemberLength(const UIPanel & src) : UIPanel(src) {}
+
 void	UIMemberLength::action(int glX, int glY, HumanManager * manager) {
 	(void)glY;
 	// std::cout << __PRETTY_FUNCTION__ << std::endl;
@@ -153,6 +180,8 @@ void	UIMemberLength::action(int glX, int glY, HumanManager * manager) {
 }
 ///////////////////////////////////////////////////////////////////////////
 UIGlobalLength::UIGlobalLength(Texture * tex) : UIPanel(tex) {}
+UIGlobalLength::UIGlobalLength(const UIPanel & src) : UIPanel(src) {}
+
 void	UIGlobalLength::action(int glX, int glY, HumanManager * manager) {
 	(void)glY;
 	// std::cout << __PRETTY_FUNCTION__ << std::endl;
@@ -168,6 +197,8 @@ void	UIGlobalLength::action(int glX, int glY, HumanManager * manager) {
 }
 ///////////////////////////////////////////////////////////////////////////
 UIThickness::UIThickness(Texture * tex) : UIPanel(tex) {}
+UIThickness::UIThickness(const UIPanel & src) : UIPanel(src) {}
+
 void	UIThickness::action(int glX, int glY, HumanManager * manager) {
 	(void)glY;
 	// std::cout << __PRETTY_FUNCTION__ << std::endl;
@@ -181,6 +212,8 @@ void	UIThickness::action(int glX, int glY, HumanManager * manager) {
 }
 ///////////////////////////////////////////////////////////////////////////
 UIFakeRaycast::UIFakeRaycast(Texture * tex) : UIPanel(tex) {}
+UIFakeRaycast::UIFakeRaycast(const UIPanel & src) : UIPanel(src) {}
+
 void	UIFakeRaycast::action(int glX, int glY, HumanManager * manager) {
 	(void)glX;
 	(void)glY;

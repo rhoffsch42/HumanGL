@@ -30,17 +30,6 @@ _thickness(thickness), _lenght(lenght)
 	this->_leftArm.local.setScale(-1, 1, 1);
 	this->_leftThigh.local.setScale(-1, 1, 1);
 
-	//hierarchy
-	this->_head.setParent(&this->_trunk);
-	this->_leftArm.setParent(&this->_trunk);
-	this->_rightArm.setParent(&this->_trunk);
-	this->_leftThigh.setParent(&this->_trunk);
-	this->_rightThigh.setParent(&this->_trunk);
-
-	this->_leftForearm.setParent(&this->_leftArm);
-	this->_rightForearm.setParent(&this->_rightArm);
-	this->_leftCalf.setParent(&this->_leftThigh);
-	this->_rightCalf.setParent(&this->_rightThigh);
 
 	//colors
 	this->_head.model.setColor(255, 255, 0);
@@ -55,6 +44,24 @@ _thickness(thickness), _lenght(lenght)
 	this->_leftCalf.model.setColor(120, 20, 180);
 	this->_rightCalf.model.setColor(35, 82, 185);
 
+	this->buildHierarchy();
+	this->buildObjList();
+}
+
+void				Human::buildHierarchy() {
+	this->_head.setParent(&this->_trunk);
+	this->_leftArm.setParent(&this->_trunk);
+	this->_rightArm.setParent(&this->_trunk);
+	this->_leftThigh.setParent(&this->_trunk);
+	this->_rightThigh.setParent(&this->_trunk);
+
+	this->_leftForearm.setParent(&this->_leftArm);
+	this->_rightForearm.setParent(&this->_rightArm);
+	this->_leftCalf.setParent(&this->_leftThigh);
+	this->_rightCalf.setParent(&this->_rightThigh);
+}
+
+void				Human::buildObjList() {
 	this->_objList.push_back(&this->_head.model);
 	this->_objList.push_back(&this->_trunk.model);
 	this->_objList.push_back(&this->_leftArm.model);
@@ -67,11 +74,24 @@ _thickness(thickness), _lenght(lenght)
 	this->_objList.push_back(&this->_rightCalf.model);
 }
 
-// Human::Human(const Human & src) {//FIX not compiling, use only operator= ?
-// 	*this = src;
-// }
 
-Human &			Human::operator=(const Human & src) {//FIX Obj3d model are well copied ?
+// horrible
+Human::Human(const Human & src)
+: _head(src._head.model.getBlueprint(), src._head.model.getProgram()), \
+_trunk(src._trunk.model.getBlueprint(), src._trunk.model.getProgram()), \
+_leftArm(src._leftArm.model.getBlueprint(), src._leftArm.model.getProgram()), \
+_rightArm(src._rightArm.model.getBlueprint(), src._rightArm.model.getProgram()), \
+_leftForearm(src._leftForearm.model.getBlueprint(), src._leftForearm.model.getProgram()), \
+_rightForearm(src._rightForearm.model.getBlueprint(), src._rightForearm.model.getProgram()), \
+_leftThigh(src._leftThigh.model.getBlueprint(), src._leftThigh.model.getProgram()), \
+_rightThigh(src._rightThigh.model.getBlueprint(), src._rightThigh.model.getProgram()), \
+_leftCalf(src._leftCalf.model.getBlueprint(), src._leftCalf.model.getProgram()), \
+_rightCalf(src._rightCalf.model.getBlueprint(), src._rightCalf.model.getProgram())
+{
+	*this = src;
+}
+
+Human &			Human::operator=(const Human & src) {//FIX Obj3d model are well copied ? pos rot scale. seems not
 	// std::cout << __PRETTY_FUNCTION__ << std::endl;
 	this->_thickness = src._thickness;
 	this->_lenght = src._lenght;
@@ -86,6 +106,11 @@ Human &			Human::operator=(const Human & src) {//FIX Obj3d model are well copied
 	this->_rightThigh = src._rightThigh;
 	this->_leftCalf = src._leftCalf;
 	this->_rightCalf = src._rightCalf;
+
+	this->_objList.clear();
+	this->buildObjList();
+	this->buildHierarchy();
+
 	return (*this);
 }
 
